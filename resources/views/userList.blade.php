@@ -178,6 +178,7 @@
     <script>
       $(document).ready(function(){
       });
+      //유저 비밀번호 체크 ajax
       function userPwCheck(index){
         var userPw = prompt("비밀번호를 입력해주세요");
         var userId = index;
@@ -198,16 +199,21 @@
           }
         });
       }
-
+      //유저조회 조건 초기화
       function defalut(){
+        //radio
         $("#gender").prop("checked", true);
+        //text
         $("#serchFirWord").val("");
         $("#serchSecWord").val("");
+        //date
         $("#serchDateFir").val("2000-01-01");
         $("#serchDateSec").val("2050-01-01");
+        //check box
         $("#serchUserAll").prop("checked", true);
         $("#serchUserActive").prop("checked", false);;
         $("#serchUserSleep").prop("checked", false);;
+        //serlect box
         $("#filterFir").val("");
         $("#filterSec").val("");
         $("#sort").val("no");

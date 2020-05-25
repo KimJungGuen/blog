@@ -22,10 +22,11 @@ class UserController extends Controller
      //view에 표시될 데이터 포맷 처리
      foreach ($users as $user) {
        $user->join_date =  str::substr($user->join_date, 0, 10);
-       if($user->gender == 1)
-        $user->gender = '남';
-       else if($user->gender == 2)
+       if ($user->gender == 1) {
+         $user->gender = '남';
+       } else if ($user->gender == 2) {
         $user->gender = '여';
+       }
      }
 
       $pageView = ['pageLimit' => $pageLimit,
@@ -53,27 +54,27 @@ class UserController extends Controller
          }
        }
 
-     if($required == 0) {
+     if ($required == 0) {
          $msg = "a blank space ID";
          $check = 0;
-       } else if($required <= 4 || $required >= 21) {
+     } else if ($required <= 4 || $required >= 21) {
          $msg = "not less than 5 but not more than 20 characters";
          $check = 0;
-       }
+     }
 
      return response()->json(['msg' => $msg, 'check' => $check]);
    }
    //유저등록
    public function userRegister(Request $request){
 
-     if($request->file('file')) {
+     if ($request->file('file')) {
        $path = $request->file('file')->store('userFile');
      }
 
      $model = new NoticeBoard();
 
      //들어온 전화번호를 보기편하게 - 구분자를 삽입한다.
-     $tel =  preg_replace("/([0-9]{3})([0-9]{4})([0-9]{4})/", "$1-$2-$3",$request->input('tel'));
+     $tel = preg_replace("/([0-9]{3})([0-9]{4})([0-9]{4})/", "$1-$2-$3",$request->input('tel'));
 
      //최초 가입은 상태가 없기떄문에 초기값으로 가입을 넣어준다.
      $userStatus = '가입';
@@ -95,7 +96,7 @@ class UserController extends Controller
      ]);
 
      $row = $model->count();
-     if($row == 0) {
+     if ($row == 0) {
        $no = 1;
      } else if($row != 0) {
        //마지막 유저를 구한다
@@ -139,7 +140,7 @@ class UserController extends Controller
      //조회한 유저와 입력한 비밀번호가 맞는지 체크
      $pwCheck = Str::of($result[0]->user_pw)->exactly($userPw);
      //비밀번호가 틀릴경우
-     if(!$pwCheck) {
+     if (!$pwCheck) {
        $msg = "비밀번호가 틀렸습니다.";
      }
 
@@ -174,7 +175,7 @@ class UserController extends Controller
      $userIndex = $request->input('userIndex');
      $fileExt = $request->allFiles();
 
-     if($fileExt){
+     if ($fileExt){
        $path = $request->file('file')->store('userFile');
      } else {
        $path = $user[0]->file;
@@ -189,7 +190,7 @@ class UserController extends Controller
      $email = $request->input('email')
          . $request->input('emailDomain');
      //전화번호 포멧으로 문자열 재배치 수정
-     $phone =  preg_replace("/([0-9]{3})([0-9]{4})([0-9]{4})/",
+     $phone = preg_replace("/([0-9]{3})([0-9]{4})([0-9]{4})/",
                             "$1-$2-$3",
                             $request->input('tel'));
 
@@ -225,21 +226,21 @@ class UserController extends Controller
      $serchUserStatus = $request->input('serchUserAll', null);
 
      //유저 상태 조회가 사용 또는 휴먼 둘중 하나일경우
-     if(!$serchUserStatus){
-       if($request->input('serchUserActive', null)){ //가입자 조회만 체크할경우
+     if (!$serchUserStatus) {
+       if ($request->input('serchUserActive', null)) { //가입자 조회만 체크할경우
          $serchUserStatus = $request->input('serchUserActive', null);
        } else { //나머지 경우는 휴면 유저 조회밖에 없으므로 else처리
          $serchUserStatus = $request->input('serchUserSleep', null);
        }
      }
      //성별이 체크된 경우 성별 검색을 위해 값을 넣어줌  1=남 2=여
-     if($request->input('gender') == 1) {
+     if ($request->input('gender') == 1) {
        $gender = 1;
      } else if ($request->input('gender') == 2) {
        $gender = 2;
      }
 
-     if($filterFir && $filterSec) { //검색지정 필터가 2개 다 있을경우
+     if ($filterFir && $filterSec) { //검색지정 필터가 2개 다 있을경우
        $serchTextFir = $request->input('serchFirWord'); //첫번쨰 검색필드의 텍스트
        $serchTextSec = $request->input('serchSecWord'); //두번째 검색필드의 텍스트
        $serch = ['filterFir' => $filterFir, //첫번째 검색필터
@@ -251,7 +252,7 @@ class UserController extends Controller
                  'serchUserStatus' => $serchUserStatus, //조회할 유저의 상태
                  'gender' => $gender]; //유저의 성별
        $users = $model->serchFullFilter($serch, $sortOrder, $pageLimit); //전체조건 조회
-     } else if($filterFir && !$filterSec) {
+     } else if ($filterFir && !$filterSec) {
        $serchTextFir = $request->input('serchFirWord');
        $serch = ['filter' => $filterFir,
                  'serchText' => $serchTextFir,
@@ -284,10 +285,11 @@ class UserController extends Controller
      //view에 표시될 데이터 포맷 처리
      foreach ($users as $user) {
        $user->join_date =  str::substr($user->join_date, 0, 10);
-       if($user->gender == 1)
+       if ($user->gender == 1) {
         $user->gender = '남';
-       else if($user->gender == 2)
+       } else if ($user->gender == 2) {
         $user->gender = '여';
+       }
      }
 
       $pageView = ['pageLimit' => $pageLimit,
@@ -299,9 +301,5 @@ class UserController extends Controller
        'pageView' => $pageView
      ]);
 
-   }
-   //유저 삭제
-   public function userDelete(Request $request){
-     dd("a");
    }
 }
