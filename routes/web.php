@@ -24,7 +24,7 @@ Route::get('/user',function(){
     return view('Registerpagi');
 });
 //유저등록 요청
-//Route::post('/users','UserController@userRegister');
+Route::post('/users','UserController@userRegister');
 //유저 id 중복검사 요청 ajax
 Route::post('/userIdCheck', 'UserController@userIdCheck');
 //유저 pw 체크요청 ajax

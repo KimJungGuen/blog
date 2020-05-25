@@ -75,7 +75,6 @@
             <td>정렬</td>
             <td>
               <select id="sort" name="sort">
-                <option value="no">순번</option>
                 <option value="index">번호</option>
                 <option value="accumulated">적립금</option>
                 <option value="age">나이</option>
@@ -108,9 +107,8 @@
       style="position: absolute; left: 95%; height: 2.5%"/
       value="유저삭제"
       onclick="location.href='/user'"/>
-
+      @csrf
       <form name="pageing" method="get" action="/users">
-        @csrf
         <select style="position : absolute; left:98%; top:0px;" name="pageLimit" OnChange="this.form.submit();">
           @for($i=1;$i<=10;$i++)
             @if($i == $pageView['pageLimit'])
@@ -150,7 +148,7 @@
             @foreach($users as $user)
             <tr name="user" onclick="userPwCheck('{{$user->index}}');">
               <td><input type="checkbox"></td>
-              <td>{{$user->no}}</td>
+              <td>{{$loop->iteration}}</td>
               <td >{{$user->index}}</td>
               <td >{{$user->user_status}}</td>
               <td >{{$user->name}}</td>
@@ -176,8 +174,6 @@
     </div>
 
     <script>
-      $(document).ready(function(){
-      });
       //유저 비밀번호 체크 ajax
       function userPwCheck(index){
         var userPw = prompt("비밀번호를 입력해주세요");
@@ -216,8 +212,13 @@
         //serlect box
         $("#filterFir").val("");
         $("#filterSec").val("");
-        $("#sort").val("no");
+        $("#sort").val("index");
         $("#orderBy").val("asc");
+      }
+
+      //select box 전달
+      function selectRequest(){
+        
       }
     </script>
   </body>

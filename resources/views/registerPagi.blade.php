@@ -31,7 +31,7 @@
             <td>아이디</td>
             <td>
               <input type="text" id="userId" name="userId"/>
-			  <input type="hidden" id="idStatus" value="0"/>
+			        <input type="hidden" id="idStatus" value="0"/>
               <button type="button" id="idCheck" class="btn btn-success" onclick="userIdCheck();">아이디중복확인</button>
             </td>
           </tr>

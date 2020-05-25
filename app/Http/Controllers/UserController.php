@@ -30,8 +30,8 @@ class UserController extends Controller
      }
 
       $pageView = ['pageLimit' => $pageLimit,
-                  'perPage' => $perPage,
-                  'total' => $total];
+                   'perPage' => $perPage,
+                   'total' => $total];
 
      return view('userList', [
        'users' => $users,
@@ -43,7 +43,8 @@ class UserController extends Controller
      $model = new NoticeBoard();
      $users = $model->getUserAll();
      $userId = $request->input('userId');
-     $required = Str::length($userId);
+     $userIdLength = Str::length($userId);
+
      $msg = "Complete ID";
      $check = 1;
 
@@ -54,10 +55,10 @@ class UserController extends Controller
          }
        }
 
-     if ($required == 0) {
+     if ($userIdLength == 0) {
          $msg = "a blank space ID";
          $check = 0;
-     } else if ($required <= 4 || $required >= 21) {
+     } else if ($userIdLength <= 4 || $userIdLength >= 21) {
          $msg = "not less than 5 but not more than 20 characters";
          $check = 0;
      }
@@ -72,20 +73,19 @@ class UserController extends Controller
      }
 
      $model = new NoticeBoard();
-
+     abort(404);
      //들어온 전화번호를 보기편하게 - 구분자를 삽입한다.
      $tel = preg_replace("/([0-9]{3})([0-9]{4})([0-9]{4})/", "$1-$2-$3",$request->input('tel'));
 
      //최초 가입은 상태가 없기떄문에 초기값으로 가입을 넣어준다.
-     $userStatus = '가입';
 
      $validate = $request->validate([
-       'name' => 'required|string|min:2',
+       'name' => 'required|string|between:2,5',
        'userId' => 'required|between:5,20',
        'age' => 'required|numeric',
        'userPw' => 'required',
        'userPwCheck' => 'required',
-       'tel' => 'required|numeric|min:9',
+       'tel' => 'required|numeric|min:11',
        'gender' => 'required|numeric',
        'accumulated' => 'required|numeric',
        'addressNum' => 'required',
@@ -94,16 +94,6 @@ class UserController extends Controller
        'email' => 'required',
        'emailDomain' => 'required|min:2'
      ]);
-
-     $row = $model->count();
-     if ($row == 0) {
-       $no = 1;
-     } else if($row != 0) {
-       //마지막 유저를 구한다
-       $lastUser = $model->lastUserNo($row);
-       //마지막 유저의 no에서 +1
-       $no = $lastUser + 1;
-     }
 
      //들어온 우편번호와 주소를 구분자를 삽입하여 통합
      $address = $request->input('addressNum')
@@ -115,14 +105,32 @@ class UserController extends Controller
      $email = $request->input('email')
          . $request->input('emailDomain');
 
-     $model->userInsert($request,
-                       $no,
-                       $address,
-                       $email,
-                       $tel,
-                       $userStatus,
-                       $path
-                       );
+     $userId = $request->input('userId');
+     $userPw = $request->input('userPw');
+     $name = $request->input('name');
+     $gender = $request->input('gender');
+     $age = $request->input('age');
+     $accumulated = $request->input('accumulated');
+     $etc = $request->input('etc');
+     $join_date = now();
+     $marry = $request->input('marry');
+
+     $user = ['userId' => $userId,
+              'userPw' => $userPw,
+              'name' => $name,
+              'gender' => $gender,
+              'age' => $age,
+              'accumulated' => $accumulated,
+              'email' => $email,
+              'address' => $address,
+              'etc' => $etc,
+              'join_date' => now(),
+              'marry' => $marry,
+              'tel' => $tel,
+              'userStatus' => $userStatus,
+              'file' => $path];
+
+     $result = $model->userInsert($user);
 
      return redirect('/users');
    }
@@ -252,32 +260,9 @@ class UserController extends Controller
                  'serchUserStatus' => $serchUserStatus, //조회할 유저의 상태
                  'gender' => $gender]; //유저의 성별
        $users = $model->serchFullFilter($serch, $sortOrder, $pageLimit); //전체조건 조회
-     } else if ($filterFir && !$filterSec) {
-       $serchTextFir = $request->input('serchFirWord');
-       $serch = ['filter' => $filterFir,
-                 'serchText' => $serchTextFir,
-                 'serchDateFir' => $serchDateFir,
-                 'serchDateSec' => $serchDateSec,
-                 'serchUserStatus' => $serchUserStatus,
-                 'gender' => $gender];
-       $users = $model->serchFilter($serch, $sortOrder, $pageLimit); //첫번째 검색필터로 조회
-     } else if (!$filterFir && $filterSec) {
-       $serchTextSec = $request->input('serchSecWord');
-       $serch = ['filter' => $filterSec,
-                 'serchText' => $serchTextSec,
-                 'serchDateFir' => $serchDateFir,
-                 'serchDateSec' => $serchDateSec,
-                 'serchUserStatus' => $serchUserStatus,
-                 'gender' => $gender];
-       $users = $model->serchFilter($serch, $sortOrder, $pageLimit); //두번쨰 검색필터로 조회
-     } else { //검색 지정된 필드가 없음
-       $serch = ['serchDateFir' => $serchDateFir,
-                      'serchDateSec' => $serchDateSec,
-                      'serchUserStatus' => $serchUserStatus,
-                      'gender' => $gender];
-       $users = $model->serchNonFilter($serch, $sortOrder, $pageLimit);
      }
      //페이지 조건에 의한 유저 페이징
+     $users = $model->getList($pageLimit);
      //현재페이지에 뿌려질 유저의 수
      $perPage = $users->perPage();
      //조회된 건수

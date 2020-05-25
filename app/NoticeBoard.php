@@ -8,11 +8,6 @@ class NoticeBoard extends Model
 {
     protected $table = 'user';
     public $timestamps = false;
-    //마지막 유저 조회
-    public function lastUserNo(int $row) {
-      $lastUser = $this->offset($row - 1)->limit(1)->get();
-      return $lastUser[0]->no;
-    }
     //paginate를 이용한 페이지 정보 및 표시할 유저정보 조회
     public function getList(int $pageLimit){
       $users = $this->paginate($pageLimit);
@@ -59,7 +54,7 @@ class NoticeBoard extends Model
     }
     //유저 업데이트
     public function userUpdate(int $userIndex, String $address, String $email, String $phone, String $path, $request){
-      $this->where('index', $userIndex)
+      $d = $this->where('index', $userIndex)
            ->update(['address' => $address,
                      'email' => $email,
                      'tel' => $phone,
@@ -67,6 +62,9 @@ class NoticeBoard extends Model
                      'etc' => $request->input('etc'),
                      'accumulated' => $request->input('accumulated'),
                      'user_pw' => $request->input('userPw')]);
+
+                     dd($d);
+
     }
     // 검색어 하나
     // 검색어 둘
@@ -84,26 +82,6 @@ class NoticeBoard extends Model
                     ->orderBy($order['sort'], $order['orderBy'])
                     ->paginate($pageLimit);
 
-      return $users;
-    }
-
-    //검색필터가 하나만 있을때 사용
-    public function serchFilter($serch, $order, $pageLimit){
-      $users = $this->where($serch['filter'], 'like', '%'.$serch['serchText'].'%') // 첫번쨰 필드 필터와 필드 내용
-                    ->where('user_status', 'like', $serch['serchUserStatus']) //모든, 사용, 휴면 계정
-                    ->where('gender', 'like', $serch['gender'])  //전체 [1-2] 남 1 여 2 성별
-                    ->whereBetween('join_date', [$serch['serchDateFir'], $serch['serchDateSec']]) //두 날짜 사이에 가입 날짜 조회
-                    ->orderBy($order['sort'], $order['orderBy'])
-                    ->paginate($pageLimit);
-      return $users;
-    }
-
-    public function serchNonFilter($serch, $order, $pageLimit){
-      $users = $this->where('user_status', 'like', $serch['serchUserStatus']) //모든, 사용, 휴면 계정
-                    ->where('gender', 'like', $serch['gender'])  //전체 [1-2] 남 1 여 2 성별
-                    ->whereBetween('join_date', [$serch['serchDateFir'], $serch['serchDateSec']]) //두 날짜 사이에 가입 날짜 조회
-                    ->orderBy($order['sort'], $order['orderBy'])
-                    ->paginate($pageLimit);
       return $users;
     }
 
