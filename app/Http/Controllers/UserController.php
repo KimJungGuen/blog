@@ -275,7 +275,7 @@ class UserController extends Controller
                       'serchDateSec' => $serchDateSec,
                       'serchUserStatus' => $serchUserStatus,
                       'gender' => $gender];
-       $users = $model->serchNonFilter($serch, $sortOrder, $pageLimit); //두번쨰 검색필터로 조회
+       $users = $model->serchNonFilter($serch, $sortOrder, $pageLimit);
      }
      //페이지 조건에 의한 유저 페이징
      //현재페이지에 뿌려질 유저의 수
