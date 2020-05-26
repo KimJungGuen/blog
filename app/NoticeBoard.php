@@ -25,6 +25,11 @@ class NoticeBoard extends Model
 
       return $user;
     }
+    public function getUserId(String $userId){
+      $user = $this->where('user_id', $userId)->get();
+
+      return $user;
+    }
 
     public function test(){
       //$user = $this->where('user_status','like','가%')->get();
@@ -33,38 +38,37 @@ class NoticeBoard extends Model
       return $user;
     }
     //유저 등록
-    public function userInsert($request, int $no, String $address, String $email,String $tel, String $userStatus, String $userFile) {
-      $this->insert ([
-          'no' => $no,
-          'user_id' => $request->input('userId'),
-          'user_pw' => $request->input('userPw'),
-          'name' => $request->input('name'),
-          'gender' => $request->input('gender'),
-          'age' => $request->input('age'),
-          'accumulated' => $request->input('accumulated'),
-          'email' => $email,
-          'address' => $address,
-          'etc' => $request->input('etc'),
-          'join_date' => now(),
-          'marry' => $request->input('marry'),
-          'tel' => $tel,
-          'user_status' => $userStatus,
-          'file' => $userFile
+    public function userInsert($user) {
+      $result = $this->insert ([
+          'user_id' => $user['userId'],
+          'user_pw' => $user['userPw'],
+          'name' => $user['name'],
+          'gender' => $user['gender'],
+          'age' => $user['age'],
+          'accumulated' => $user['accumulated'],
+          'email' => $user['email'],
+          'address' => $user['address'],
+          'etc' => $user['etc'],
+          'join_date' => $user['join_date'],
+          'marry' => $user['marry'],
+          'tel' => $user['tel'],
+          'user_status' => $user['userStatus'],
+          'file' => $user['file']
         ]);
+      return $result;
     }
     //유저 업데이트
-    public function userUpdate(int $userIndex, String $address, String $email, String $phone, String $path, $request){
-      $d = $this->where('index', $userIndex)
-           ->update(['address' => $address,
-                     'email' => $email,
-                     'tel' => $phone,
-                     'file' => $path,
-                     'etc' => $request->input('etc'),
-                     'accumulated' => $request->input('accumulated'),
-                     'user_pw' => $request->input('userPw')]);
+    public function userUpdate($userData){
+      $result = $this->where('index', $userData['userIndex'])
+           ->update(['user_pw' => $userData['userPw'],
+                     'email' => $userData['email'],
+                     'accumulated' => $userData['accumulated'],
+                     'address' => $userData['address'],
+                     'tel' => $userData['tel'],
+                     'file' => $userData['file'],
+                     'etc' => $userData['etc']]);
 
-                     dd($d);
-
+      return $result;
     }
     // 검색어 하나
     // 검색어 둘
@@ -73,12 +77,12 @@ class NoticeBoard extends Model
     // 내림차운
 
     //검색필터 두개가 전부 있을때 사용함
-    public function serchFullFilter($serch, $order, $pageLimit){
-      $users = $this->where($serch['filterFir'], 'like', '%'.$serch['serchTextFir'].'%') // 첫번쨰 필드 필터와 필드 내용
-                    ->where($serch['filterSec'], 'like', '%'.$serch['serchTextSec'].'%') // 두번째 필드 필터와 필드 내용
-                    ->where('user_status', 'like', $serch['serchUserStatus']) //모든, 사용, 휴면 계정
-                    ->where('gender', 'like', $serch['gender'])  //전체 [1-2] 남 1 여 2 성별
-                    ->whereBetween('join_date', [$serch['serchDateFir'], $serch['serchDateSec']]) //두 날짜 사이에 가입 날짜 조회
+    public function searchFullFilter($search, $order, $pageLimit){
+      $users = $this->where($search['filterFir'], 'like', '%'.$search['searchTextFir'].'%') // 첫번쨰 필드 필터와 필드 내용
+                    ->where($search['filterSec'], 'like', '%'.$search['searchTextSec'].'%') // 두번째 필드 필터와 필드 내용
+                    ->where('user_status', 'like', $search['searchUserStatus']) //모든, 사용, 휴면 계정
+                    ->where('gender', 'like', $search['gender'])  //전체 [1-2] 남 1 여 2 성별
+                    ->whereBetween('join_date', [$search['searchDateFir'], $search['searchDateSec']]) //두 날짜 사이에 가입 날짜 조회
                     ->orderBy($order['sort'], $order['orderBy'])
                     ->paginate($pageLimit);
 

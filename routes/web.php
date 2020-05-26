@@ -30,10 +30,14 @@ Route::post('/userIdCheck', 'UserController@userIdCheck');
 //유저 pw 체크요청 ajax
 Route::post('/userPwCheck', 'UserController@userPwCheck');
 //유저 Update페이지
-Route::get('/userUpdate/{userIndex}', 'UserController@userUpdatePage');
+Route::post('/userUpdate/{userIndex}', 'UserController@userUpdatePage');
+//url접근할시 메인화면으로
+Route::get('/userUpdate/{userIndex}', function() {
+  return redirect('/users');
+});
 //유저 업데이트 요청
-Route::post('/userUpdate', 'UserController@userUpdate');
+Route::put('/userUpdate', 'UserController@userUpdate');
 //유저 검색
-Route::get('/userSerch', 'UserController@userSerch');
+Route::get('/userSearch', 'UserController@userSearch');
 //유저 삭제
 Route::delete('/userDelete', 'UserController@userDelete');
