@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 class UserController extends Controller
 {
    //메인 페이지
-   public function users(Request $request){
+   public function users(Request $request) {
      $model = new NoticeBoard();
      //처음 페이지에 들어갈떄 표시할 유저의 수는 5로 지정
      $pageLimit = $request->input('pageLimit', 5);
@@ -165,51 +165,60 @@ class UserController extends Controller
      $pwCheck = true;
 
      //해당 유저를 조회
-     $result = $model->getUser($userIndex);
+     $user = $model->getUser($userIndex);
      //조회한 유저와 입력한 비밀번호가 맞는지 체크
-     $pwCheck = Str::of($result[0]->user_pw)->exactly($userPw);
-     //비밀번호가 틀릴경우
-     if (!$pwCheck) {
+     $pwCheck = Str::of($user[0]->user_pw)->exactly($userPw);
+
+     if (!$pwCheck) { //비밀번호가 틀릴경우
        $msg = '비밀번호가 틀렸습니다.';
+     } else {
+       //비밀번호가 맞을경우 해당 usreIndex session생성
+       $request->session()->put('userIndex', $user[0]->index);
      }
 
      return response()->json(['pwCheck' => $pwCheck, 'msg' => $msg]);
    }
    //유저 업데이트 페이지에 해당 PK의 유저정보 표시
    public function userUpdatePage(Request $request,$userIndex){
-     $model = new NoticeBoard();
-     $user = $model->getUser($userIndex);
+     if($request->session()->has('userIndex')){
+       $request->session()->forget('userIndex');
+       //dd(session()->all());
+       $model = new NoticeBoard();
+       $user = $model->getUser($userIndex);
 
-     $userPw = $user[0]->user_pw;
-     $etc = $user[0]->etc;
-     $accumulated = $user[0]->accumulated;
-     //email 표시를 위해 @기준으로 다시나눔
-     $email = Str::of($user[0]->email)->before('@');
-     $emailDomain = Str::of($user[0]->email)->after('@');
-     //tel표시를 위해 다시 숫자만 보이게 변환
-     $tel =  preg_replace('/-/', '',$user[0]->tel);
-     //우편번호를 / 기준으로 다시 분할 표시
-     $addressNum = Str::of($user[0]->address)->before('#*');
-     $addressRoad = Str::of($user[0]->address)->between('#*' ,'#@');
-     $addressDetail = Str::of($user[0]->address)->after('#@');
+       $userPw = $user[0]->user_pw;
+       $etc = $user[0]->etc;
+       $accumulated = $user[0]->accumulated;
+       //email 표시를 위해 @기준으로 다시나눔
+       $email = Str::of($user[0]->email)->before('@');
+       $emailDomain = Str::of($user[0]->email)->after('@');
+       //tel표시를 위해 다시 숫자만 보이게 변환
+       $tel =  preg_replace('/-/', '',$user[0]->tel);
+       //우편번호를 / 기준으로 다시 분할 표시
+       $addressNum = Str::of($user[0]->address)->before('#*');
+       $addressRoad = Str::of($user[0]->address)->between('#*' ,'#@');
+       $addressDetail = Str::of($user[0]->address)->after('#@');
 
-     $userData = ['userIndex' => $userIndex,
-                  'userPw' => $userPw,
-                  'email' => $email,
-                  'emailDomain' => $emailDomain,
-                  'tel' => $tel,
-                  'addressNum' => $addressNum,
-                  'addressRoad' => $addressRoad,
-                  'addressDetail' => $addressDetail,
-                  'etc' => $etc,
-                  'accumulated' => $accumulated];
+       $userData = ['userIndex' => $userIndex,
+                    'userPw' => $userPw,
+                    'email' => $email,
+                    'emailDomain' => $emailDomain,
+                    'tel' => $tel,
+                    'addressNum' => $addressNum,
+                    'addressRoad' => $addressRoad,
+                    'addressDetail' => $addressDetail,
+                    'etc' => $etc,
+                    'accumulated' => $accumulated];
 
-     return view('userUpdate',['userData' => $userData]);
+       return view('userUpdate',['userData' => $userData]);
+     } else {
+       return redirect('/users');
+     }
    }
    //유저 Update
    public function userUpdate(Request $request){
      $validate = $request->validate([
-                        //   'userPw' => 'required|same:userPwCheck',
+                           'userPw' => 'required|same:userPwCheck',
                            'tel' => 'required|max:13',
                            'accumulated' => 'required|integer',
                            'addressNum' => 'required|max:5',
@@ -260,8 +269,9 @@ class UserController extends Controller
    }
    //유저 검색
    public function userSearch(Request $request){
-     $model = new NoticeBoard();
 
+     dump($request->query());
+     $model = new NoticeBoard();
      $pageLimit = $request->input('searchPageLimit', 5);
      //검색필터를 지정안했으면 false로 초기화
      $filterFir = $request->input('filterFir', false); //첫번쨰 검색어 필터
@@ -306,9 +316,10 @@ class UserController extends Controller
                  'searchUserStatus' => $searchUserStatus, //조회할 유저의 상태
                  'gender' => $gender]; //유저의 성별
        $users = $model->searchFullFilter($search, $sortOrder, $pageLimit); //전체조건 조회
+     } else {
+       $users = $model->getList($pageLimit);
      }
-     //페이지 조건에 의한 유저 페이징
-     $users = $model->getList($pageLimit);
+     //dump($users);
      //현재페이지에 뿌려질 유저의 수
      $perPage = $users->perPage();
      //조회된 건수
@@ -323,9 +334,12 @@ class UserController extends Controller
        }
      }
 
+     $query = $request->query();
+
       $pageView = ['pageLimit' => $pageLimit,
                   'perPage' => $perPage,
-                  'total' => $total];
+                  'total' => $total,
+                  'query' => $query];
 
      return view('userList', [
        'users' => $users,

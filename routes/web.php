@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\History;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,11 +31,7 @@ Route::post('/userIdCheck', 'UserController@userIdCheck');
 //유저 pw 체크요청 ajax
 Route::post('/userPwCheck', 'UserController@userPwCheck');
 //유저 Update페이지
-Route::post('/userUpdate/{userIndex}', 'UserController@userUpdatePage');
-//url접근할시 메인화면으로
-Route::get('/userUpdate/{userIndex}', function() {
-  return redirect('/users');
-});
+Route::get('/userUpdate/{userIndex}', 'UserController@userUpdatePage')->middleware(History::class);
 //유저 업데이트 요청
 Route::put('/userUpdate', 'UserController@userUpdate');
 //유저 검색

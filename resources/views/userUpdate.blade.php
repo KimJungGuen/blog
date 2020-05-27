@@ -20,8 +20,8 @@
 
     <div class='contains'>
       <form name='userUpdate' enctype='multipart/form-data'  method='post' action='/userUpdate'>
-      @csrf
       <table class = 'table table-bordered'>
+        @csrf
         <input type='hidden' name='_method' value='put' />
         <input type='hidden' name='userIndex' value="{{$userData['userIndex']}}" />
         <tbody>
@@ -161,6 +161,7 @@
         $('form').submit();
     }
     $(document).ready(function(){
+      //var aaa = prompt('비밀번호를 입력해주세요');
       //숫자입력 필드에 키업 이벤트 발생시 숫자필터 외의 문자열을 공백으로 수정
   		$('.numberOnly').keyup(function() {
   			$(this).val($(this).val().replace(/[^0-9]/g,''));

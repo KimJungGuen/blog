@@ -18,7 +18,7 @@
   <body>
 
     <div>
-     <form name='search' method='get' action='/userSearch'>
+     <form id='searchForm' name='search' method='get' action='/userSearch'>
       <input type='hidden' name='searchPageLimit' value="{{$pageView['pageLimit']}}" />
       <table class='table'>
         <thead class='text-center'>
@@ -87,7 +87,7 @@
           </tr>
           <tr>
             <td>
-              <button type='button' class='btn' onclick='this.form.submit();'>검색</button>
+              <button type='button' class='btn' onclick='searchUsers();'>검색</button>
               <button type='button' class='btn' onclick='defalut();'>초기화</button>
             <td>
           </tr>
@@ -107,9 +107,8 @@
       style='position: absolute; left: 95%; height: 2.5%'/
       value='유저삭제'
       onclick="location.href='/user'"/>
-      @csrf
-      <form name='pageing' method='get' action='/users'>
-        <select style='position : absolute; left:98%; top:0px;' name='pageLimit' OnChange='this.form.submit();'>
+      <form id='ordinaryForm' name='ordinary' method='get' action='/users'>
+        <select style='position : absolute; left:98%; top:0px;' name='pageLimit' OnChange='ChangePageLimit();'>
           @for($i=1;$i<=10;$i++)
             @if($i == $pageView['pageLimit'])
               <option value={{$i}} selected>{{$i}}</option>
@@ -166,53 +165,78 @@
           </tbody>
           @endif
         </table>
-          {{$users->appends(request()->input())->links()}}
+          {{$users->appends(request()->query())->links()}}
       </form>
     </div>
 
     <div>
     </div>
-
+    @csrf
     <script>
       //유저 비밀번호 체크 ajax
-      function userPwCheck(index){
+      function userPwCheck(index) {
         var userPw = prompt('비밀번호를 입력해주세요');
-        var userId = index;
+        var userIndex = index;
         $.ajax({
           url:'/userPwCheck',
           type:'post',
-          data:{'userIndex' : userId,
+          data:{'userIndex' : userIndex,
                 'userPw' : userPw,
                 '_token' : $('input[name=_token]').val()},
           datatype:'json',
           success:function(result){
             alert(result.msg);
             if (result.pwCheck) {
-              var updateForm = $('<form></form>');
-              var url = 'userUpdate/' + index;
-              updateForm.attr('action', url);
-              updateForm.attr('method', 'post');
-              updateForm.append('@csrf');
-              updateForm.appendTo('body');
-              updateForm.submit();
+              $(location).attr('href', '/userUpdate/' + userIndex);
             }
-            //$(location).attr('href', '/userUpdate/' + userId);
           },
           error:function(request,sts,error){
             alert('통신에러');
           }
         });
       }
+      //유저 조회
+      function searchUsers() {
+        //첫번쨰 검색어 필드 특문체크
+        var name = $('#searchFirWord').val();
+        var nameCheck = name.search(/[~!@#$%^&*()<>?]/g);
+
+        //두번쨰 검색어 필트 특문체크
+        var email = $('#searchSecWord').val();
+        var emailCheck = name.search(/[~!#$%^&*()<>?]/g);
+
+
+
+        if (!$('#filterFir').val() || !$('#filterSec').val()) { // 검색 필터가 안 정해져있을떄
+          alert('검색필터를 골라주세요.');
+          return;
+        } else if ($('#filterFir').val() && $('#filterSec').val()) {
+            if (!$('#searchFirWord').val() || !$('#searchSecWord').val()) { //검색어 필드가 빈 값일때
+              alert('검색어를 입력해주세요.');
+              return;
+            } else if ($('#searchFirWord').val() && $('#searchSecWord').val()) {
+              $('#searchForm').submit();
+            }
+        }
+      }
+      //page표시row조절
+      function ChangePageLimit() {
+        var app = <?php json_encode(1); ?>
+        var textBoxFir = ($('#searchFirWord').val() ? true : false );
+        alert(form);
+        //$('#searchForm').submit();
+        $('#ordinaryForm').submit();
+      }
       //유저조회 조건 초기화
-      function defalut(){
+      function defalut() {
         //radio
         $('#gender').prop('checked', true);
         //text
         $('#searchFirWord').val('');
         $('#searchSecWord').val('');
         //date
-        $('#searchDateFir').val('2000-01-01');
-        $('#searchDateSec').val('2050-01-01');
+        $('#searchDateFir').val('');
+        $('#searchDateSec').val('');
         //check box
         $('#searchUserAll').prop('checked', true);
         $('#searchUserActive').prop('checked', false);;
@@ -222,11 +246,6 @@
         $('#filterSec').val('');
         $('#sort').val('index');
         $('#orderBy').val('asc');
-      }
-
-      //select box 전달
-      function selectRequest(){
-
       }
     </script>
   </body>

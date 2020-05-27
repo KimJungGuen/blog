@@ -33,7 +33,8 @@ class NoticeBoard extends Model
 
     public function test(){
       //$user = $this->where('user_status','like','가%')->get();
-      $user = $this->where('gender', 'like', '%')->get();
+      $user = $this->where('gender', '1')
+                   ->where('name', '김정근')->get();
 
       return $user;
     }
