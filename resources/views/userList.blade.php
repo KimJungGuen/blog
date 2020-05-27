@@ -221,7 +221,7 @@
       }
       //page표시row조절
       function ChangePageLimit() {
-        var app = <?php json_encode(1); ?>
+
         var textBoxFir = ($('#searchFirWord').val() ? true : false );
         alert(form);
         //$('#searchForm').submit();
