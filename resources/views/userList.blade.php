@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
   <head>
+    <!-- section 1 !-->
     <meta charset='utf-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
     <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css'
@@ -14,12 +15,14 @@
             integrity='sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl'
             crossorigin='anonymous'></script>
     <script src='https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'></script>
+    <!-- section 1 !-->
   </head>
   <body>
 
     <div>
+     @if (!$searchData) <!--초기 메인페이지 에서 검색 데이터가 없을경우 !-->
      <form id='searchForm' name='search' method='get' action='/userSearch'>
-      <input type='hidden' name='searchPageLimit' value="{{$pageView['pageLimit']}}" />
+      <input type='hidden' id='searchPageLimit' name='searchPageLimit' value='' />
       <table class='table'>
         <thead class='text-center'>
           <tr><th colspan='2'>검색</th></tr>
@@ -51,24 +54,24 @@
           <tr>
             <td>상태</td>
               <td>
-                <input id='searchUserAll' name='searchUserAll' value='%' type='checkbox' checked> 모든계정
-                <input id='searchUserActive' name='searchUserActive' value='가입' type='checkbox'> 사용계정
-                <input id='searchUserSleep' name='searchUserSleep' value='휴면' type='checkbox'> 휴먼계정
+                <input id='searchUserAll' name='searchUserAll' value=3  type='checkbox' checked> 모든계정
+                <input id='searchUserActive' name='searchUserActive' value=1 type='checkbox'> 사용계정
+                <input id='searchUserSleep' name='searchUserSleep' value=2 type='checkbox'> 휴먼계정
               </td>
           </tr>
           <tr>
             <td>성별</td>
             <td>
-              <input type='radio' id='gender' name='gender' value='%' checked/>전체
-              <input type='radio'  name='gender' value='1'/>남
-              <input type='radio'  name='gender' value='2'/>여
+              <input type='radio' id='gender' name='gender' value=3 checked/>전체
+              <input type='radio'  name='gender' value=1 />남
+              <input type='radio'  name='gender' value=2 />여
             </td>
           </tr>
           <tr>
             <td>가입일</td>
             <td>
-              <input type='date' id='searchDateFir' name='searchDateFir' />
-              <input type='date' id='searchDateSec' name='searchDateSec' />
+              <input type='date' id='searchDateFir' name='searchDateFir' value="{{now()->format('Y-m-d')}}"/>
+              <input type='date' id='searchDateSec' name='searchDateSec' value="{{now()->format('Y-m-d')}}"/>
             </td>
           </tr>
           <tr>
@@ -93,22 +96,102 @@
           </tr>
         </tbody>
       </form>
+
+      @elseif ($searchData) <!--검색 후에 데이터가 있을경우 !-->
+      <form id='searchForm' name='search' method='get' action='/userSearch'>
+       <input type='hidden' id='searchPageLimit' name='searchPageLimit' value='' />
+       <table class='table'>
+         <thead class='text-center'>
+           <tr><th colspan='2'>검색</th></tr>
+         </thead>
+         <tbody >
+           <tr>
+             <td rowspan='2'>검색어</td>
+             <td>
+               <select id='filterFir' name='filterFir'>
+                 <option value="{{$searchData['filterFir']}}">선택</option>
+                 <option value='user_id'>ID</option>
+                 <option value='name'>이름</option>
+                 <option value='email'>email</option>
+               </select>
+               <input type='text' id='searchFirWord' name='searchFirWord' value="{{$searchData['searchTextFir']}}" />
+             </td>
+           </tr>
+           <tr>
+             <td>
+               <select  id='filterSec' name='filterSec'>
+                 <option value="{{$searchData['filterSec']}}">선택</option>
+                 <option value='user_id'>ID</option>
+                 <option value='name'>이름</option>
+                 <option value='email'>email</option>
+               </select>
+               <input type='text' id='searchSecWord' name='searchSecWord' value="{{$searchData['searchTextSec']}}"/>
+             </td>
+           </tr>
+           <tr>
+             <td>상태</td>
+               <td>
+                 <input id='searchUserAll' name='searchUserAll' value=3 type='checkbox' checked> 모든계정
+                 <input id='searchUserActive' name='searchUserActive' value=1 type='checkbox'> 사용계정
+                 <input id='searchUserSleep' name='searchUserSleep' value=2 type='checkbox'> 휴먼계정
+               </td>
+           </tr>
+           <tr>
+             <td>성별</td>
+             <td>
+               <input type='radio' id='gender' name='gender' value=3 checked/>전체
+               <input type='radio'  name='gender' value=1 />남
+               <input type='radio'  name='gender' value=2 />여
+             </td>
+           </tr>
+           <tr>
+             <td>가입일</td>
+             <td>
+               <input type='date' id='searchDateFir' name='searchDateFir' value="{{$searchData['searchDateFir']}}" />
+               <input type='date' id='searchDateSec' name='searchDateSec' value="{{$searchData['searchDateSec']}}" />
+             </td>
+           </tr>
+           <tr>
+             <td>정렬</td>
+             <td>
+               <select id='sort' name='sort'>
+                 <option value='index'>번호</option>
+                 <option value='accumulated'>적립금</option>
+                 <option value='age'>나이</option>
+               </select>
+               <select id='orderBy' name='orderBy'>
+                 <option value='asc'>오름차순</option>
+                 <option value='desc'>내림차순</option>
+               </select>
+             </td>
+           </tr>
+           <tr>
+             <td>
+               <button type='button' class='btn' onclick='searchUsers();'>검색</button>
+               <button type='button' class='btn' onclick='defalut();'>초기화</button>
+             <td>
+           </tr>
+         </tbody>
+       </form>
+      @endif
     </div>
 
+
+
     <div>
-      조회된 건 수 : {{$pageView['total']}}
+      <p style='position:absolute; height:3.3%; top:40%; left:8%;' > 조회된 건 수 : {{$pageView['total']}} </p>
 
       <input type='button' class='btn btn-primary'
-      style='position: absolute; left: 90%; height: 2.5%'/
+      style='position:absolute; top:40%; left:85%; height:3.5%;'/
       value='유저등록'
       onclick="location.href='/user'"/>
 
       <input type='button' class='btn btn-primary'
-      style='position: absolute; left: 95%; height: 2.5%'/
+      style='position:absolute; top:40%; left: 90%; height: 3.5%;'/
       value='유저삭제'
-      onclick="location.href='/user'"/>
+      onclick='userDelete()'/>
       <form id='ordinaryForm' name='ordinary' method='get' action='/users'>
-        <select style='position : absolute; left:98%; top:0px;' name='pageLimit' OnChange='ChangePageLimit();'>
+        <select style='position:absolute; height:3.3%; top:40%; left:98%;' id='pageLimit' name='pageLimit' OnChange='ChangePageLimit();'>
           @for($i=1;$i<=10;$i++)
             @if($i == $pageView['pageLimit'])
               <option value={{$i}} selected>{{$i}}</option>
@@ -121,7 +204,7 @@
         <table class='table table-bordered text-center'>
           <thead>
             <tr>
-              <th><input type='checkbox'></th>
+              <th>삭제</th>
               <th>순번</th>
               <th>번호</th>
               <th>상태</th>
@@ -145,11 +228,11 @@
           && $pageView['pageLimit'] > 0)
           <tbody>
             @foreach($users as $user)
-            <tr name='user' onclick="userPwCheck('{{$user->index}}');">
-              <td><input type='checkbox'></td>
+            <tr name='user' onclick="userPwCheck('{{$user->index}}');" >
+              <td onclick='event.cancelBubble=true'><input class='deleteBox' type='checkbox' value='{{$user->index}}'></td>
               <td>{{$loop->iteration}}</td>
               <td >{{$user->index}}</td>
-              <td >{{$user->user_status}}</td>
+              <td >{{$userStatus[$loop->index]}}</td>
               <td >{{$user->name}}</td>
               <td >{{$user->user_id}}</td>
               <td >{{$user->gender}}</td>
@@ -168,6 +251,7 @@
           {{$users->appends(request()->query())->links()}}
       </form>
     </div>
+
 
     <div>
     </div>
@@ -205,7 +289,8 @@
         var email = $('#searchSecWord').val();
         var emailCheck = name.search(/[~!#$%^&*()<>?]/g);
 
-
+        //기존 pageLimit은 form이달라 값에 포함이 안되어 따로 searchForm에 할당
+        $('#searchPageLimit').attr('value',$('#pageLimit option:selected').val());
 
         if (!$('#filterFir').val() || !$('#filterSec').val()) { // 검색 필터가 안 정해져있을떄
           alert('검색필터를 골라주세요.');
@@ -219,13 +304,26 @@
             }
         }
       }
-      //page표시row조절
+      //users페이지와 userSearch페이지 구분후 pageLimit설정
       function ChangePageLimit() {
-
-        var textBoxFir = ($('#searchFirWord').val() ? true : false );
-        alert(form);
-        //$('#searchForm').submit();
-        $('#ordinaryForm').submit();
+        //url기준으로 메인 users페이지 조절인지 search페이지 조절인지 구분
+        var actionUrl = $(location).attr('href').split('/').pop().split('?');
+        //get 데이터를 다시 나눔
+        var query = $(location).attr('href').split('?').pop().split('&');
+        //기존 pageLimit은 form이달라 값에 포함이 안되어 따로 searchForm에 할당
+        $('#searchPageLimit').attr('value',$('#pageLimit option:selected').val());
+        //param의 첫번쨰 데이터는 페이지 표시수가 바뀌면 수정돼야 한다
+        var param = 'searchPageLimit=' + $('#searchPageLimit').val();;
+        //나누어진 query를 다시 합침
+        $.each(query, function(index, value) {
+          if (index > 0 && index < 11) {
+            param += ('&' + value);
+          }
+        });
+        //actionUrl 변수에 따라 데이터 전송 할곳을 선택
+        (('users' == actionUrl[0])
+        ? $('#ordinaryForm').submit()
+        : $(location).attr('href', '/userSearch?' + param));
       }
       //유저조회 조건 초기화
       function defalut() {
@@ -246,6 +344,35 @@
         $('#filterSec').val('');
         $('#sort').val('index');
         $('#orderBy').val('asc');
+      }
+      //유저 삭제
+      function userDelete() {
+        var deleteCheck = confirm('선택된 유저를 삭제하시겠습니까?');
+        var userIndex = {};
+
+        if (deleteCheck) {
+          $('.deleteBox:checked').each(function(index){
+            userIndex[index] = $(this).val();
+          });
+
+          $.ajax({
+            url:'/userDelete',
+            type:'delete',
+            data:{'userIndex' : userIndex,
+                  '_token' : $('input[name=_token]').val()},
+            datatype:'json',
+            success:function(result){
+              if (result.deleteRow) {
+                alert(result.msg);
+              } else {
+                alert('회원 탈퇴가 실패했습니다.')
+              }
+            },
+            error:function(request,sts,error){
+              alert('통신에러');
+            }
+          });
+        }
       }
     </script>
   </body>
