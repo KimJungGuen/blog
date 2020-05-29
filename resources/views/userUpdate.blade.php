@@ -70,7 +70,7 @@
           </tr>
           <tr>
             <td>파일 업로드</td>
-            <td><input type='file' id='file' name='file' value='' /></td>
+            <td><input type='file' id='file' name='file' value='' Onchange='fileImg(this);' /><img id='preImg' src="{{$userData['imgUrl']}}"  width='200' height='200'/></td>
           </tr>
           <tr>
             <td>비고</td>
@@ -78,11 +78,25 @@
           </tr>
         </tbody>
       </table>
-      <button type='button' class='btn btn-primary' onclick='update();'>저장하기</button>
+      <button type='button' class='btn btn-primary' onclick='update(this);'>저장하기</button>
       </form>
     </div>
 
   <script>
+    //유저 파일 업로드시 미리보기
+    function fileImg(input) {
+      if (input.files && input.files[0]) {
+      //파일을 읽기위해 fileEader API를 사용
+      var reader = new FileReader();
+
+      reader.readAsDataURL(input.files[0]);
+        //read가 끝나면 onload 트리거 발생
+        reader.onload = function (e) {
+          //result값은 base64로 인코딩된 데이터
+          $('#preImg').attr('src', e.target.result);
+        }
+      }
+    }
     //다음 우편번호 api
     function addressModal() {
         new daum.Postcode({

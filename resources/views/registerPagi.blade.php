@@ -100,7 +100,7 @@
           </tr>
           <tr>
             <td>파일 업로드</td>
-            <td><input type='file' id='file' name='file' /></td>
+            <td><input type='file' id='file' name='file' value='' Onchange='fileImg(this);' /><img id='preImg' src='#'  width='200' height='200'/></td>
           </tr>
           <tr>
             <td>비고</td>
@@ -119,6 +119,20 @@
       </form>
     </div>
     <script>
+    //유저 파일 업로드시 미리보기
+    function fileImg(input) {
+      if (input.files && input.files[0]) {
+      //파일을 읽기위해 fileEader API를 사용
+      var reader = new FileReader();
+
+      reader.readAsDataURL(input.files[0]);
+        //read가 끝나면 onload 트리거 발생
+        reader.onload = function (e) {
+          //result값은 base64로 인코딩된 데이터
+          $('#preImg').attr('src', e.target.result);
+        }
+      }
+    }
     //다음 주소 api
     function addressModal() {
         new daum.Postcode({

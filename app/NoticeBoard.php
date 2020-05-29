@@ -33,14 +33,6 @@ class NoticeBoard extends Model
 
       return $user;
     }
-
-    public function test(){
-      //$user = $this->where('user_status','like','가%')->get();
-      $user = $this->where('index', '39')->Delete();
-
-      return $user;
-    }
-
     //유저 등록
     public function userInsert($user) {
       $result = $this->insert (['user_id' => $user['userId'],
@@ -50,7 +42,9 @@ class NoticeBoard extends Model
                                 'age' => $user['age'],
                                 'accumulated' => $user['accumulated'],
                                 'email' => $user['email'],
-                                'address' => $user['address'],
+                                'address_num' => $user['addressNum'],
+                                'address_road' => $user['addressRoad'],
+                                'address_detail' => $user['addressDetail'],
                                 'etc' => $user['etc'],
                                 'join_date' => $user['join_date'],
                                 'marry' => $user['marry'],
@@ -65,14 +59,15 @@ class NoticeBoard extends Model
            ->update(['user_pw' => $userData['userPw'],
                      'email' => $userData['email'],
                      'accumulated' => $userData['accumulated'],
-                     'address' => $userData['address'],
+                     'address_num' => $userData['addressNum'],
+                     'address_road' => $userData['addressRoad'],
+                     'address_detail' => $userData['addressDetail'],
                      'tel' => $userData['tel'],
                      'file' => $userData['file'],
                      'etc' => $userData['etc']]);
 
       return $result;
     }
-
     //모든 유저 검색
     public function searchFullUser($search, $order, $pageLimit) {
       $users = $this->withTrashed() //모든 유저
@@ -108,7 +103,6 @@ class NoticeBoard extends Model
     //Index 해당 유저 삭제
     public function deleteUser($index) {
       $result = $this->where('index', $index)->Delete();
-
       return $result;
     }
 
