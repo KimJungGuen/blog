@@ -22,10 +22,10 @@ Route::get('/', function () {
 Route::get('/users','UserController@users');
 //유저등록 페이지
 Route::get('/user',function(){
-    return view('Registerpagi');
+    return view('RegisterPage');
 });
 //유저등록 요청
-Route::post('/users','UserController@userRegister');
+Route::post('/users','UserController@userRegister')->name('register');
 //유저 id 중복검사 요청 ajax
 Route::post('/userIdCheck', 'UserController@userIdCheck');
 //유저 pw 체크요청 ajax
@@ -33,7 +33,7 @@ Route::post('/userPwCheck', 'UserController@userPwCheck');
 //유저 Update페이지
 Route::get('/userUpdate/{userIndex}', 'UserController@userUpdatePage')->middleware(History::class);
 //유저 업데이트 요청
-Route::put('/userUpdate', 'UserController@userUpdate');
+Route::put('/userUpdate', 'UserController@userUpdate')->name('update');
 //유저 검색
 Route::get('/userSearch', 'UserController@userSearch');
 //유저 삭제

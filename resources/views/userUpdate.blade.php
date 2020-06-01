@@ -19,11 +19,11 @@
   <body>
 
     <div class='contains'>
-      <form name='userUpdate' enctype='multipart/form-data'  method='post' action='/userUpdate'>
+      <form id='userUpdate' name='userUpdate' enctype='multipart/form-data'  method='post' action='/userUpdate'>
       <table class = 'table table-bordered'>
         @csrf
         <input type='hidden' name='_method' value='put' />
-        <input type='hidden' name='userIndex' value="{{$userData['userIndex']}}" />
+        <input type='hidden' id='userIndex' name='userIndex' value="{{$userData['userIndex']}}" />
         <tbody>
           <tr>
             <td>비밀번호</td>
@@ -41,8 +41,8 @@
             <td>이메일</td>
             <td>
               <input type='text' id='email' name='email' value="{{$userData['email']}}"  maxlength='50' /> @
-              <select name='emailDomain'>
-                <option value='{{$userData['emailDomain']}}'>{{$userData['emailDomain']}}</option>
+              <select id='emailDomain' name='emailDomain'>
+                <option value="{{$userData['emailDomain']}}">{{$userData['emailDomain']}}</option>
                 <option value='naver.com'>naver.com</option>
                 <option value='gmail.com'>gmail.com</option>
                 <option value='daum.com'>daum.com</option>
@@ -74,7 +74,7 @@
           </tr>
           <tr>
             <td>비고</td>
-            <td><textarea rows='2' name='etc' style='width:100%' value="{{$userData['etc']}}">{{$userData['etc']}}</textarea></td>
+            <td><textarea rows='2' id='etc' name='etc' style='width:100%' value="{{$userData['etc']}}">{{$userData['etc']}}</textarea></td>
           </tr>
         </tbody>
       </table>
@@ -82,6 +82,20 @@
       </form>
     </div>
 
+
+    <!--
+    laravel validation이 실패할경우 페이지 리다이렉트를 하면서 
+    error정보를 가지고옴 ajax에서도 반환이 가능
+    @if ($errors->any())
+      <div class="alert alert-danger">
+          <ul>
+              @foreach ($errors->all() as $error)
+                  <li>{{ $error }}</li>
+              @endforeach
+          </ul>
+      </div>
+      @endif
+    --> 
   <script>
     //유저 파일 업로드시 미리보기
     function fileImg(input) {
@@ -171,8 +185,30 @@
   				 alert('jpg, png 파일만 업로드 가능합니다.');
   				 return;
   			 }
-  		 }
-        $('form').submit();
+       }
+
+       var formData =new FormData($('#userUpdate')[0]);
+       //유저 업데이트
+       $.ajax({
+        url:'/userUpdate',
+        type:'post',
+        data:formData,
+        datatype:'json',
+        processData: false,  //지정 안되어있을경우 항상 true 값은 queryString을보냄 file이 포함될경우 false로 해야함
+        contentType: false,   
+        success:function(result){
+            alert(result.msg);
+            $(location).attr('href', '/users');
+        },
+          error:function(request){
+          var errors = request.responseJSON.errors; //json형태로 변수에 errors값 삽입
+          var error = '';
+          $.each(errors, function(index, value) {
+            error += value + '\n'; //유효성 검사가 복수로 걸릴경우 반복문돌면서 메시지 통합
+          });
+          alert(error);
+        }
+      });
     }
     $(document).ready(function(){
       //var aaa = prompt('비밀번호를 입력해주세요');

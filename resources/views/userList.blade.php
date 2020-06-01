@@ -211,30 +211,39 @@
       function userDelete() {
         var deleteCheck = confirm('선택된 유저를 삭제하시겠습니까?');
         var userIndex = {};
+        var indexValueCheck = false;
 
-        if (deleteCheck) {
+        //삭제 확인창에서 확인을 누른경우
+        if (deleteCheck) { 
+          //체크된 딜리트 박스들의 값들을 each반복문을 돌면서 배열에 삽입 ex)foreach
           $('.deleteBox:checked').each(function(index){
             userIndex[index] = $(this).val();
+            //체크된 박스가 있을경우에 반복문이 돌아서 true가 들어감
+            indexValueCheck = true;
           });
-
-          $.ajax({
-            url:'/userDelete',
-            type:'delete',
-            data:{'userIndex' : userIndex,
-                  '_token' : $('input[name=_token]').val()},
-            datatype:'json',
-            success:function(result){
-              if (result.deleteRow) {
-                alert(result.msg);
-                $(location).attr('href', '/users');
-              } else {
-                alert('회원 탈퇴가 실패했습니다.')
+          //선택된 유저가 있을경우 해당유저 index번호를 보내서 soft delete처리
+          if (indexValueCheck) {
+            $.ajax({
+              url:'/userDelete',
+              type:'delete',
+              data:{'userIndex' : userIndex,
+                    '_token' : $('input[name=_token]').val()},
+              datatype:'json',
+              success:function(result){
+                if (result.deleteRow) {
+                  alert(result.msg);
+                  $(location).attr('href', '/users');
+                } else {
+                  alert('회원 탈퇴가 실패했습니다.')
+                }
+              },
+              error:function(request,sts,error){
+                alert('통신에러');
               }
-            },
-            error:function(request,sts,error){
-              alert('통신에러');
-            }
-          });
+            });
+          } else { //선택된 유저가 없을 경우
+            alert('유저를 선택해주세요.')
+          }
         }
       }
     </script>

@@ -3,16 +3,18 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use App\NoticeBoard;
+use Illuminate\Http\Request;
 use App\Http\Requests\UserRequest;
+use App\NoticeBoard;
 
 
 class UserController extends Controller
 {
-  //검색 & 유저 리스트 페이지
-   public function page($page)
+   //삭제된 유저 복구 *softdelete삭제 복구용
+   //$model->withTrashed()->restore();
+   //검색 & 유저 리스트 페이지
+   public function page(array $page)
    {
     $userStatus = array();
     $index = 0;
@@ -33,13 +35,12 @@ class UserController extends Controller
                   'perPage' => $perPage,
                   'total' => $total];
 
-    return view('userList', [
-      'users' => $page['users'],
-      'pageView' => $pageView,
-      'searchData' => $page['searchValue'],
-      'userStatus' => $userStatus,
-      'filters' => $page['filters']
-    ]);
+    return view('userList', array('users' => $page['users'],
+                                  'pageView' => $pageView,
+                                  'searchData' => $page['searchValue'],
+                                  'userStatus' => $userStatus,
+                                  'filters' => $page['filters']
+    ));
    }
    //메인 페이지
    public function users(Request $request)
@@ -55,7 +56,7 @@ class UserController extends Controller
      $page = ['users' => $users,
               'pageLimit' => $pageLimit,
               'searchValue' => $searchValue,
-              'filters' => $filters];
+              'filters' => $filters];    
 
      return $this->page($page);
    }
@@ -88,13 +89,12 @@ class UserController extends Controller
        $check = 0;
      }
 
-     return response()->json(['msg' => $msg, 'check' => $check]);
+     return response()->json(array('msg' => $msg, 'check' => $check));
    }
    //유저등록
    public function userRegister(UserRequest $request)
    {
-
-     $validated = $request->validated();
+     $msg = '회원등록이 되었습니다.';
 
      if ($request->file('file')) {
        $path = $request->file('file')->store('userFile');
@@ -103,7 +103,7 @@ class UserController extends Controller
      }
 
      $model = new NoticeBoard();
-     //들어온 전화번호를 보기편하게 - 구분자를 삽입한다.
+     //들어온 전화번호를 - 구분자를 삽입한다.
      $tel = preg_replace('/([0-9]{3})([0-9]{4})([0-9]{4})/',
                          '$1-$2-$3',
                          $request->input('tel'));
@@ -144,9 +144,10 @@ class UserController extends Controller
       try {
         $result = $model->userInsert($user);
       } catch (\Exception $e) {
-        return view('error');
+        $msg = '회원등록에 실패했습니다.';
       }
-     return redirect('/users');
+
+     return response()->json(array('msg' => $msg, 'result' => $result));
    }
    //유저 비밀번호 확인
    public function userPwCheck(Request $request)
@@ -170,30 +171,27 @@ class UserController extends Controller
        $request->session()->put('userIndex', $user[0]->index);
      }
 
-     return response()->json(['pwCheck' => $pwCheck, 'msg' => $msg]);
+     return response()->json(array('pwCheck' => $pwCheck, 'msg' => $msg));
    }
    //유저 업데이트 페이지에 해당 PK의 유저정보 표시
    public function userUpdatePage(Request $request,$userIndex)
    {
      if($request->session()->has('userIndex')){
        $request->session()->forget('userIndex');
-       //dd(session()->all());
        $model = new NoticeBoard();
        $user = $model->getUser($userIndex);
 
        $userPw = $user[0]->user_pw;
        $etc = $user[0]->etc;
        $accumulated = $user[0]->accumulated;
+       $addressNum = $user[0]->address_num;
+       $addressRoad = $user[0]->address_road;
+       $addressDetail = $user[0]->address_detail;
        //email 표시를 위해 @기준으로 다시나눔
        $email = Str::of($user[0]->email)->before('@');
        $emailDomain = Str::of($user[0]->email)->after('@');
        //tel표시를 위해 다시 숫자만 보이게 변환
        $tel =  preg_replace('/-/', '',$user[0]->tel);
-       //우편번호를 / 기준으로 다시 분할 표시
-       $addressNum = $user[0]->address_num;
-       $addressRoad = $user[0]->address_road;
-       $addressDetail = $user[0]->address_detail;
-
 
        $path = $user[0]->file;
        $imgUrl = Storage::url($path);
@@ -216,17 +214,8 @@ class UserController extends Controller
      }
    }
    //유저 Update
-   public function userUpdate(Request $request)
+   public function userUpdate(UserRequest $request)
    {
-     $validate = $request->validate([
-                           'userPw' => 'required|same:userPwCheck',
-                           'tel' => 'required|max:13',
-                           'accumulated' => 'required|integer',
-                           'addressNum' => 'required|max:5',
-                           'addressRoad' => 'required',
-                           'email' => 'required'
-                         ]);
-
      $model = new NoticeBoard();
      $user = $model->getUser($request->input('userIndex'));
      $userIndex = $request->input('userIndex');
@@ -234,6 +223,7 @@ class UserController extends Controller
      $etc = $request->input('etc');
      $accumulated = $request->input('accumulated');
      $userPw = $request->input('userPw');
+     $msg = '업데이트 성공';
 
      if ($fileExt) {
        $path = $request->file('file')->store('userFile' , 'local');
@@ -268,14 +258,15 @@ class UserController extends Controller
 
      try {
        $result = $model->userUpdate($userData);
+       $msg = '회원정보 업데이트 성공';
      } catch (\Exception $e) {
-       return view('error');
+       $msg = '회원정보 업데이트 실패';
      }
 
-     return redirect('/users');
+     return response()->json(array('msg' => $msg, 'result' => $result));
    }
-   //검색 필드 값 가공
-   public function searchData($request)
+   //유저 검색 필드 값 가공
+   public function searchData(Request $request)
    {
      //검색필터를 지정안했으면 false로 초기화
      $filterFir = $request->input('filterFir', false); //첫번쨰 검색어 필터
@@ -329,8 +320,8 @@ class UserController extends Controller
 
      return array($searchData, $filters);
    }
-   //이전 필터값 유지를 위해 필터 값 재 가공
-   public function filter($searchData)
+   //유저 검색 이전 필터값 유지를 위해 필터 값 가공
+   public function filter(array $searchData)
    {
      //필터 값에 따라 표시될 문자를 넣음 *비 효율적이므로 스위치로 개정 필요
      $filterFir = ($searchData['filterFir'] == 'user_id')
@@ -382,16 +373,14 @@ class UserController extends Controller
      $searchValue = $search[0];
      //필터 가공값
      $filters = $search[1];
-     //dd($searchData);
      $pageLimit = $request->input('searchPageLimit', 5);
-     //dd($searchData['sortOrder']);
+
      //유저 상태에 따른 검색
      $users = ($searchValue['userStatus'] == 3)
             ? $model->searchFullUser($searchValue, $searchValue['sortOrder'], $pageLimit)
             : (($searchValue['userStatus'] == 1)
             ? $model->searchActiveUser($searchValue, $searchValue['sortOrder'], $pageLimit)
             : $model->searchSleepUser($searchValue, $searchValue['sortOrder'], $pageLimit));
-
 
      $page = ['users' => $users,
               'pageLimit' => $pageLimit,
@@ -404,23 +393,20 @@ class UserController extends Controller
    public function userDelete(Request $request)
    {
      $model = new NoticeBoard();
-     $userIndex = $request->input('userIndex', null);
+     $userIndex = $request->input('userIndex', false);
      $msg = '';
-
      if ($userIndex) {
        foreach ($userIndex as $index) {
          try{
            $deleteRow = $model->deleteUser($index);
          } catch(\Exception $e) {
-           $msg = '삭제에 실패했습니다.'
+           $msg = '회원 탈퇴가 실패했습니다.';
          }
-         $msg = '선택한 유저가 삭제됐습니다.';
+         $msg = '선택한 유저가 탈퇴됐습니다.';
        }
-     } else {
-       $msg = '선택한 유저가 없습니다.';
      }
-     //$delete = $result;
-     return response()->json(['msg' => $msg, 'deleteRow' => $deleteRow]);
+     return response()->json(array('msg' => $msg,
+                                   'deleteRow' => $deleteRow));
    }
 
 }

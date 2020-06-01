@@ -10,6 +10,10 @@ class NoticeBoard extends Model
     use SoftDeletes;
     protected $table = 'user';
     public $timestamps = false;
+    //test용 삭제 예정
+    public function test (){
+      $this->insert(['age' => 'dsfsdf']);
+    }
     //paginate를 이용한 페이지 정보 및 표시할 유저정보 조회
     public function getList(int $pageLimit){
       $users = $this->paginate($pageLimit);
@@ -18,23 +22,28 @@ class NoticeBoard extends Model
     }
     //모든 유저 조회
     public function getUserAll() {
-      $users = $this->get();
+      $users = $this->withTrashed()
+                    ->get();
       return $users;
     }
     //해당 인덱스 유저 조회 PK기준
     public function getUser(int $userIndex){
-      $user = $this->where('index', $userIndex)->get();
+      $user = $this->withTrashed()
+                   ->whereIndex($userIndex)
+                   ->get();
 
       return $user;
     }
     //해당 유저id로 조회
     public function getUserId(String $userId){
-      $user = $this->where('user_id', $userId)->get();
+      $user = $this->withTrashed()
+                   ->whereUser_id($userId)
+                   ->get();
 
       return $user;
     }
     //유저 등록
-    public function userInsert($user) {
+    public function userInsert(array $user) {
       $result = $this->insert (['user_id' => $user['userId'],
                                 'user_pw' => $user['userPw'],
                                 'name' => $user['name'],
@@ -54,22 +63,23 @@ class NoticeBoard extends Model
       return $result;
     }
     //유저 업데이트
-    public function userUpdate($userData) {
-      $result = $this->where('index', $userData['userIndex'])
-           ->update(['user_pw' => $userData['userPw'],
-                     'email' => $userData['email'],
-                     'accumulated' => $userData['accumulated'],
-                     'address_num' => $userData['addressNum'],
-                     'address_road' => $userData['addressRoad'],
-                     'address_detail' => $userData['addressDetail'],
-                     'tel' => $userData['tel'],
-                     'file' => $userData['file'],
-                     'etc' => $userData['etc']]);
+    public function userUpdate(array $userData) {
+      $result = $this->withTrashed()
+                     ->where('index', $userData['userIndex'])
+                     ->update(['user_pw' => $userData['userPw'],
+                               'email' => $userData['email'],
+                               'accumulated' => $userData['accumulated'],
+                               'address_num' => $userData['addressNum'],
+                               'address_road' => $userData['addressRoad'],
+                               'address_detail' => $userData['addressDetail'],
+                               'tel' => $userData['tel'],
+                               'file' => $userData['file'],
+                               'etc' => $userData['etc']]);
 
       return $result;
     }
     //모든 유저 검색
-    public function searchFullUser($search, $order, $pageLimit) {
+    public function searchFullUser(array $search, array $order, int $pageLimit) {
       $users = $this->withTrashed() //모든 유저
                     ->where($search['filterFir'], 'like', '%'.$search['searchTextFir'].'%') // 첫번쨰 필드 필터와 필드 내용
                     ->where($search['filterSec'], 'like', '%'.$search['searchTextSec'].'%') // 두번째 필드 필터와 필드 내용
@@ -80,7 +90,7 @@ class NoticeBoard extends Model
       return $users;
     }
     //사용 유저 검색
-    public function searchActiveUser($search, $order, $pageLimit) {
+    public function searchActiveUser(array $search, array $order, int $pageLimit) {
       $users = $this->where($search['filterFir'], 'like', '%'.$search['searchTextFir'].'%') // 첫번쨰 필드 필터와 필드 내용
                     ->where($search['filterSec'], 'like', '%'.$search['searchTextSec'].'%') // 두번째 필드 필터와 필드 내용
                     ->where('gender', 'like', $search['gender'])  //전체 [1-2] 남 1 여 2 성별
@@ -90,7 +100,7 @@ class NoticeBoard extends Model
       return $users;
     }
     //휴면 유저 검색
-    public function searchSleepUser($search, $order, $pageLimit) {
+    public function searchSleepUser(array $search, array $order, int $pageLimit) {
       $users = $this->onlyTrashed() //휴면계정만
                     ->where($search['filterFir'], 'like', '%'.$search['searchTextFir'].'%') // 첫번쨰 필드 필터와 필드 내용
                     ->where($search['filterSec'], 'like', '%'.$search['searchTextSec'].'%') // 두번째 필드 필터와 필드 내용
@@ -101,7 +111,7 @@ class NoticeBoard extends Model
       return $users;
     }
     //Index 해당 유저 삭제
-    public function deleteUser($index) {
+    public function deleteUser(int $index) {
       $result = $this->where('index', $index)->Delete();
       return $result;
     }

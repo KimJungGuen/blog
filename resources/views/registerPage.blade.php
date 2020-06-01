@@ -18,7 +18,7 @@
   <body>
 
     <div class='contains'>
-      <form name='userCreate' enctype='multipart/form-data'  method='post' action='/users'>
+      <form id='userCreate' name='userCreate' enctype='multipart/form-data'  method='post' action='/users'>
       @csrf
       <table class='table table-bordered'>
         <tbody>
@@ -64,7 +64,7 @@
             <td>이메일</td>
             <td>
               <input type='text' id='email' name='email' maxlength='30' /> @
-              <select name='emailDomain'>
+              <select id='emailDomain' name='emailDomain'>
                 <option value=0 selected>선택</option>
                 <option value='naver.com'>naver.com</option>
                 <option value='gmail.com'>gmail.com</option>
@@ -104,7 +104,7 @@
           </tr>
           <tr>
             <td>비고</td>
-            <td><textarea rows='2' name='etc' style='width:100%'></textarea></td>
+            <td><textarea rows='2' id='etc' name='etc' style='width:100%'></textarea></td>
           </tr>
           <tr>
             <td colspan='2'>
@@ -117,6 +117,16 @@
 
       <button type='button' id='submitBtn' class='btn btn-primary' onclick='validate();'>저장하기</button>
       </form>
+
+      @if ($errors->any())
+      <div class="alert alert-danger">
+          <ul>
+              @foreach ($errors->all() as $error)
+                  <li>{{ $error }}</li>
+              @endforeach
+          </ul>
+      </div>
+      @endif
     </div>
     <script>
     //유저 파일 업로드시 미리보기
@@ -257,9 +267,32 @@
           alert('jpg, png 파일만 업로드 가능합니다.');
           return;
         }
+      } if (!$('#agree:checked').val()) {
+        alert('개인정보수집동의 박스를 체크해주세요.');
+        return;
       }
 
-      $('form').submit();
+      //ajax file전송을 위해서 FormData를 활용 *업데이트 부분 주석과 동일
+      var formData =new FormData($('#userCreate')[0]);
+      $.ajax({
+        url:'/users',
+        type:'post',
+        data:formData,
+        processData: false,  
+        contentType: false, 
+        datatype:'json',
+        success:function(result){
+          alert(result.msg);
+          $(location).attr('href', '/users');
+        }, error:function(request){
+          var errors = request.responseJSON.errors;
+          var error = '';
+          $.each(errors, function(index, value) {
+            error += value + '\n';
+          });
+          alert(error);
+        }
+      });   
     }
 
     $(document).ready(function(){
