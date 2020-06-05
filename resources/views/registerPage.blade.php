@@ -29,7 +29,7 @@
           <tr>
             <td>아이디</td>
             <td>
-              <input type='text' id='userId' name='userId' maxlength='20'/>
+              <input type='text' id='userId' name='userId' maxlength='20' onkeydown='idCheckClear();'/>
 			        <input type='hidden' id='idStatus' value='0'/>
               <button type='button' id='idCheck' class='btn btn-success' onclick='userIdCheck();'>아이디중복확인</button>
             </td>
@@ -74,7 +74,7 @@
           </tr>
           <tr>
             <td>적립금</td>
-            <td><input type='text' id='accumulated' name='accumulated' value=0 class='numberOnly text-right' maxlength='50' /></td>
+            <td><input type='text' id='accumulated' name='accumulated' value=0 class='numberOnly text-right' maxlength='50' onclick='accumlatedClear();'/></td>
           </tr>
           <tr>
             <td>결혼 여부</td>
@@ -129,8 +129,22 @@
       @endif
     </div>
     <script>
+
+    //id 필드 다시 수정시 id체크 초기화
+    function idCheckClear() {
+      $('#idStatus').val(0);
+    }
+
+    //클릭시 적립금 텍스트 초기화
+    function accumlatedClear()
+    {
+      $('#accumulated').val('');
+      return;
+    }
+
     //유저 파일 업로드시 미리보기
-    function fileImg(input) {
+    function fileImg(input) 
+    {
       if (input.files && input.files[0]) {
       //파일을 읽기위해 fileEader API를 사용
       var reader = new FileReader();
@@ -143,8 +157,10 @@
         }
       }
     }
+
     //다음 주소 api
-    function addressModal() {
+    function addressModal() 
+    {
         new daum.Postcode({
             oncomplete: function(data) {
                 // 우편번호와 주소 정보를 해당 필드에 넣는다. 이떄 주소는 도로명만 넣어진다.
@@ -159,7 +175,8 @@
         });
     }
     //유저 id중복체크
-    function userIdCheck(){
+    function userIdCheck()
+    {
       $.ajax({
         url:'/userIdCheck',
         type:'post',
@@ -176,8 +193,10 @@
       });
     }
     //데이터 유효성 판단
-    function validate(){
+    function validate()
+    {
       var pw = $('#userPw').val();
+      var pwCheck = $('#userPwCheck').val();
 
       //search() 검사하는 값이 없을경우 -1을 반환
       var num = pw.search(/[0-9]/);
@@ -190,33 +209,49 @@
 
       //email 특문체크
       var email = $('#email').val();
-      var emailCheck = name.search(/[~!@#$%^&*()<>?]/g);
+      var emailCheck = email.search(/[~!@#$%^&*()<>?]/g);
 
       //addressDetail 특문체크
       var address = $('#addressDetail').val();
-      var addressCheck = name.search(/[~!@#$%^&*()<>?]/g);
+      var addressCheck = address.search(/[~!@#$%^&*()<>?]/g);
 
-      if (!$('#name').val()) {
+      //이름 빈값 체크
+      if (!name) 
+      {
         alert('이름을 입력해주세요');
         return;
-      } if (nameCheck > -1 || name.search(/\s/) != -1) {
+      } 
+
+      //이름 특문 체크
+      if (nameCheck > -1 || name.search(/\s/) != -1) {
         alert('정상적인 이름을 입력해주세요');
         return;
-      } if (!$('#userId').val()) {
+      } 
+      
+      //아이디 빈값체크 및 중복확인 확인여부 체크
+      if (!$('#userId').val()) {
         alert('아이디를 입력해주세요');
         return;
       } else if (Number($('#idStatus').val()) < 1) {
         alert('아이디 중복확인을 해주세요');
         return;
-      } if (!$('#userPw').val()) {
+      } 
+      
+      //비밀번호 빈값 체크
+      if (!pw) {
         alert('비밀번호를 입력해주세요');
         return;
-      } if (!$('#userPwCheck').val()) {
+      } 
+      
+      //비밀번호 확인 빈값 체크
+      if (!pwCheck) {
         alert('비밀번호 확인을 입력해주세요');
         return;
-      } if ($('#userPw').val() !== $('#userPwCheck').val()
-        && $('#userPw').val()
-        && $('#userPwCheck').val()) {
+      } 
+      
+
+      //비밀번호 자릿수 및 공백, 영어 숫자 특문 혼용 확인, 일치 확인
+      if (pw !== pwCheck && pw && pwCheck) {
         alert('비밀번호가 일치하지 않습니다.');
         return;
       } else if (pw.length < 8 || pw.length > 20) {
@@ -228,38 +263,67 @@
       } else if (num < 0 || eng < 0 || spe < 0 ) {
        alert('영문,숫자, 특수문자를 혼합하여 입력해주세요.');
        return;
-      } if($('#gender').val() === '선택') {
+      } 
+      
+      //성별체크 확인
+      if($('#gender').val() === '선택') {
         alert('성별을 선택해주세요');
         return;
-      } if(!$('#age').val()) {
+      } 
+      
+      //나이 빈값확인 및 정상값 체크
+      if(!$('#age').val()) {
         alert('나이를 입력해주세요');
         return;
-      } else if (Number($('#age').val()) <= 0
-        && Number($('#age').val()) >= 100) {
+      } else if (
+        Number($('#age').val()) <= 0
+        && Number($('#age').val()) >= 100
+        ) {
         alert('나이를 재대로 입력해주세요');
         return;
-      } if (Number($('#tel').val().length) <= 0) {
+      } 
+      
+      //전화번호 빈값 체크 및 전화번소 자릿수 체크
+      if (Number($('#tel').val().length) <= 0) {
         alert('전화번호를 입력해주세요');
         return;
-      } else if (Number($('#tel').val().length) >= 12) {
+      } else if (Number($('#tel').val().length) != 11) {
         alert('전화번호를 재대로 입력해주세요');
         return;
-      } if(!$('#email').val()) {
+      } 
+      
+      //이메일 빈값 체크
+      if(!email) {
         alert('이메일을 입력해주세요');
         return;
-      } if (emailCheck > -1 || email.search(/\s/) != -1) {
+      } 
+      
+      //이메일 특문 및 공백 체크
+      if (emailCheck > -1 || email.search(/\s/) != -1) {
         alert('정상적인 email을 입력해주세요');
         return;
-      } if (!$('#accumulated').val()) {
+      } 
+      
+      //적립금 빈값 체크
+      if (!$('#accumulated').val()) {
         alert('적립금 액수를 입력해주세요.');
         return;
-      } if(!$('#addressNum').val()) {
+      } 
+      
+      //상세주소 빈값 체크
+      if(!address) {
         alert('주소를 입력해주세요');
         return;
-      } if (addressCheck > -1) {
+      } 
+      
+      //상세주고 특문 체크
+      if (addressCheck > -1) {
         alert('정상적인 주소를 입력해주세요');
         return;
-      } if($('#file').val() != '') {
+      } 
+      
+      //파일 유무 체크
+      if($('#file').val() != '') {
         //파일의 이름중에서 확장자만을 추출한다.
         var ext = $('#file').val().split('.').pop().toLowerCase();
         //확장자명이 jpg나 png일떄만 실행
@@ -267,7 +331,9 @@
           alert('jpg, png 파일만 업로드 가능합니다.');
           return;
         }
-      } if (!$('#agree:checked').val()) {
+      } 
+      
+      if (!$('#agree:checked').val()) {
         alert('개인정보수집동의 박스를 체크해주세요.');
         return;
       }
@@ -281,13 +347,16 @@
         processData: false,  
         contentType: false, 
         datatype:'json',
-        success:function(result){
+        success:function(result)
+        {
           alert(result.msg);
           $(location).attr('href', '/users');
-        }, error:function(request){
+        }, error:function(request)
+        {
           var errors = request.responseJSON.errors;
           var error = '';
-          $.each(errors, function(index, value) {
+          $.each(errors, function(index, value) 
+          {
             error += value + '\n';
           });
           alert(error);
@@ -295,9 +364,11 @@
       });   
     }
 
-    $(document).ready(function(){
+    $(document).ready(function()
+    {
       //숫자입력 필드에 문자열 입력시 공백으로 바꿈
-      $('.numberOnly').keyup(function() {
+      $('.numberOnly').keyup(function() 
+      {
         $(this).val($(this).val().replace(/[^0-9]/g,''));
       });
     });

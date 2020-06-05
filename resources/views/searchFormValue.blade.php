@@ -31,45 +31,18 @@
    <tr>
     <td>상태</td>
     <td>
-       @switch($searchData['userStatus'])
-         @case(3)
-           <input id='searchUserAll' name='searchUserAll' value=3 type='checkbox' checked> 모든계정
-           <input id='searchUserActive' name='searchUserActive' value=1 type='checkbox'> 사용계정
-           <input id='searchUserSleep' name='searchUserSleep' value=2 type='checkbox'> 휴먼계정
-           @break
-         @case(2)
-           <input id='searchUserAll' name='searchUserAll' value=3 type='checkbox'> 모든계정
-           <input id='searchUserActive' name='searchUserActive' value=1 type='checkbox'> 사용계정
-           <input id='searchUserSleep' name='searchUserSleep' value=2  checked type='checkbox'> 휴먼계정
-           @break
-         @case(1)
-           <input id='searchUserAll' name='searchUserAll' value=3 type='checkbox'> 모든계정
-           <input id='searchUserActive' name='searchUserActive' value=1 checked type='checkbox'> 사용계정
-           <input id='searchUserSleep' name='searchUserSleep' value=2 type='checkbox'> 휴먼계정
-           @break
-       @endswitch
+        <input id='searchUserAll' name='searchUserAll' value='전체' type='checkbox' checked> 모든계정
+        <input id='searchUserActive' name='searchUserActive' value='사용' type='checkbox'> 사용계정
+        <input id='searchUserSleep' name='searchUserSleep' class='statusCheckBox' value='휴면' type='checkbox'> 휴먼계정
+
     </td>
    </tr>
    <tr>
     <td>성별</td>
     <td>
-       @switch($filters['gender'])
-         @case(3)
-           <input type='radio' id='gender' name='gender' value=3 checked/>전체
-           <input type='radio'  name='gender' value=1 />남
-           <input type='radio'  name='gender' value=2 />여
-           @break
-         @case(1)
-           <input type='radio' id='gender' name='gender' value=3 />전체
-           <input type='radio'  name='gender' value=1  checked />남
-           <input type='radio'  name='gender' value=2 />여
-           @break
-         @case(2)
-           <input type='radio' id='gender' name='gender' value=3 />전체
-           <input type='radio'  name='gender' value=1 />남
-           <input type='radio'  name='gender' value=2 checked />여
-           @break
-       @endswitch
+      <input type='radio' id='gender' name='gender' value='All'/>전체
+      <input type='radio'  name='gender' value='M' />남
+      <input type='radio'  name='gender' value='F' />여
      </td>
    </tr>
    <tr>
@@ -83,12 +56,12 @@
      <td>정렬</td>
      <td>
        <select id='sort' name='sort'>
-         <option value="{{$filters['sortValue']}}">{{$filters['sort']}}</option>
+         <option value="{{$filters['sortValue']}}">{{$filters['sort']}}</option> <!-- 스위치 문으로 바꿔야 함 -->
          <option value='index'>번호</option>
          <option value='accumulated'>적립금</option>
          <option value='age'>나이</option>
        </select>
-       <select id='orderBy' name='orderBy'>
+       <select id='orderBy' name='orderBy' onchange='ChangeOrderBy();'>
          <option value="{{$filters['orderByValue']}}">{{$filters['orderBy']}}</option>
          <option value='asc'>오름차순</option>
          <option value='desc'>내림차순</option>

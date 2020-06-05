@@ -31,17 +31,17 @@
      <tr>
        <td>상태</td>
          <td>
-           <input id='searchUserAll' name='searchUserAll' value=3  type='checkbox' checked> 모든계정
-           <input id='searchUserActive' name='searchUserActive' value=1 type='checkbox'> 사용계정
-           <input id='searchUserSleep' name='searchUserSleep' value=2 type='checkbox'> 휴먼계정
+           <input id='searchUserAll' name='searchUserAll' value='전체' onclick='statusCheckBox();'  type='checkbox' checked> 모든계정
+           <input id='searchUserActive' name='searchUserActive' value='사용' onclick='statusCheckBox();' type='checkbox'> 사용계정
+           <input id='searchUserSleep' name='searchUserSleep' value='휴면' onclick='statusCheckBox();' type='checkbox'> 휴먼계정
          </td>
      </tr>
      <tr>
        <td>성별</td>
        <td>
-         <input type='radio' id='gender' name='gender' value=3 checked/>전체
-         <input type='radio'  name='gender' value=1 />남
-         <input type='radio'  name='gender' value=2 />여
+         <input type='radio' id='gender' name='gender' value='All' checked/>전체
+         <input type='radio'  name='gender' value='M' />남
+         <input type='radio'  name='gender' value='F' />여
        </td>
      </tr>
      <tr>
@@ -59,7 +59,7 @@
            <option value='accumulated'>적립금</option>
            <option value='age'>나이</option>
          </select>
-         <select id='orderBy' name='orderBy'>
+         <select id='orderBy' name='orderBy' onchange='ChangeOrderBy();'>
            <option value='asc'>오름차순</option>
            <option value='desc'>내림차순</option>
          </select>

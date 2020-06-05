@@ -51,7 +51,7 @@
           </tr>
           <tr>
             <td>적립금</td>
-            <td><input type='text' id='accumulated' name='accumulated' class='numberOnly text-right' value="{{$userData['accumulated']}}" maxlength='15' /></td>
+            <td><input type='text' id='accumulated' name='accumulated' class='numberOnly text-right' value="{{$userData['accumulated']}}" maxlength='15'  onclick='accumlatedClear();'/></td>
           </tr>
           <tr>
             <td>우편번호</td>
@@ -82,21 +82,14 @@
       </form>
     </div>
 
-
-    <!--
-    laravel validation이 실패할경우 페이지 리다이렉트를 하면서 
-    error정보를 가지고옴 ajax에서도 반환이 가능
-    @if ($errors->any())
-      <div class="alert alert-danger">
-          <ul>
-              @foreach ($errors->all() as $error)
-                  <li>{{ $error }}</li>
-              @endforeach
-          </ul>
-      </div>
-      @endif
-    --> 
   <script>
+    //클릭시 적립금 텍스트 초기화
+    function accumlatedClear() {
+      $('#accumulated').val('');
+      return;
+    }
+
+
     //유저 파일 업로드시 미리보기
     function fileImg(input) {
       if (input.files && input.files[0]) {
@@ -129,57 +122,82 @@
     //데이터 유효성 검사 및 전송
     function update(){
   		 var pw = $('#userPw').val();
+       var pwCheck = $('#userPwCheck').val()
   		 var num = pw.search(/[0-9]/);
   		 var eng = pw.search(/[a-z]/i);
   		 var spe = pw.search(/[`~!@#$%^&*()<>?]/);
 
        //email 특문체크
        var email = $('#email').val();
-       var emailCheck = name.search(/[`~!@#$%^&*()<>?]/g);
+       var emailCheck = email.search(/[`~!@#$%^&*()<>?]/g);
 
        //addressDetail 특문체크
        var address = $('#addressDetail').val();
-       var addressCheck = name.search(/[`~!@#$%^&*()<>?]/g);
+       var addressCheck = address.search(/[`~!@#$%^&*()<>?]/g);
 
-       if(!$('#userPw').val()) {
+       //비밀번호 빈값 체크
+       if (!pw) {
   			 alert('비밀번호를 입력해주세요');
   			 return;
-  		 } if(!$('#userPwCheck').val()) {
+  		 } 
+       //비밀번호 확인 빈값 체크
+       if (!pwCheck) {
   			 alert('비밀번호 확인을 입력해주세요');
   			 return;
-  		 } if($('#userPw').val() !== $('#userPwCheck').val()
-  			 && $('#userPw').val()
-  			 && $('#userPwCheck').val()) {
+  		 } 
+       
+       //비밀번호 자릿수 및 공백, 영어 숫자 특문 혼용 확인, 일치 확인
+       if (pw !== pwCheck
+  			 && pw
+  			 && pwCheck) {
   			 alert('비밀번호가 일치하지 않습니다.');
   			 return;
-  		 } else if(pw.length < 8 || pw.length > 20) {
+  		 } else if (pw.length < 8 || pw.length > 20) {
   			alert('8자리 ~ 20자리 이내로 입력해주세요.');
   			return;
-  		 } else if(pw.search(/\s/) != -1){
+  		 } else if (pw.search(/\s/) != -1){
   			alert('비밀번호는 공백 없이 입력해주세요.');
   			return;
-  		 } else if(num < 0 || eng < 0 || spe < 0 ) {
+  		 } else if (num < 0 || eng < 0 || spe < 0 ) {
   			alert('영문,숫자, 특수문자를 혼합하여 입력해주세요.');
   			return;
-  		 } if(Number($('#tel').val().length) <= 0) {
+  		 } 
+       
+       //전화번호 빈값 체크
+       if (Number($('#tel').val().length) <= 0) {
   			 alert('전화번호를 입력해주세요');
   			 return;
-  		 } else if(Number($('#tel').val().length) >= 12) {
+  		 } else if(Number($('#tel').val().length) != 11) {
   			 alert('전화번호를 재대로 입력해주세요');
   			 return;
-  		 } if(!$('#email').val()) {
+  		 } 
+       
+       //이메일 빈값 체크
+       if(!email) {
   			 alert('이메일을 입력해주세요');
   			 return;
-  		 } if (emailCheck > -1 || email.search(/\s/) != -1) {
+  		 } 
+       
+       //이메일 특문 및 공백체크
+       if (emailCheck > -1 || email.search(/\s/) != -1) {
          alert('정상적인 email을 입력해주세요');
          return;
-       } if(!$('#addressNum').val()) {
+       } 
+       
+       //상세주소 빈값 체크
+       if(!address) {
   			 alert('주소를 입력해주세요');
   			 return;
-  		 } if (addressCheck > -1) {
+  		 } 
+       
+       //상세주소 특문 체크
+       if (addressCheck > -1) {
          alert('정상적인 주소를 입력해주세요');
          return;
-       } if($('#file').val() != '') {
+       } 
+       
+       //파일 유무 체크
+       if($('#file').val() != '') {
   			 var ext = $('#file').val().split('.').pop().toLowerCase();
   			 if($.inArray(ext,['jpg','png']) == -1){
   				 alert('jpg, png 파일만 업로드 가능합니다.');
@@ -211,7 +229,6 @@
       });
     }
     $(document).ready(function(){
-      //var aaa = prompt('비밀번호를 입력해주세요');
       //숫자입력 필드에 키업 이벤트 발생시 숫자필터 외의 문자열을 공백으로 수정
   		$('.numberOnly').keyup(function() {
   			$(this).val($(this).val().replace(/[^0-9]/g,''));
