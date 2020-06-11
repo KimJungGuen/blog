@@ -27,14 +27,14 @@ Route::get('/user',function(){
 //유저등록 요청
 Route::post('/users','UserController@userRegister')->name('register');
 //유저 id 중복검사 요청 ajax
-Route::post('/userIdCheck', 'UserController@userIdCheck');
+Route::post('/userIdCheck', 'UserController@userIdCheck')->name('userIdCheck');
 //유저 pw 체크요청 ajax
-Route::post('/userPwCheck', 'UserController@userPwCheck');
+Route::post('/userPwCheck/{userIndex}', 'UserController@userPwCheck')->name('userPwCheck');
 //유저 Update페이지
 Route::get('/userUpdate/{userIndex}', 'UserController@userUpdatePage')->middleware(History::class);
 //유저 업데이트 요청
 Route::put('/userUpdate', 'UserController@userUpdate')->name('update');
 //유저 검색
-Route::get('/userSearch', 'UserController@userSearch');
+Route::get('/userSearch', 'UserController@userSearch')->name('search');
 //유저 삭제
 Route::delete('/userDelete', 'UserController@userDelete');

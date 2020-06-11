@@ -42,10 +42,9 @@
             <td>
               <input type='text' id='email' name='email' value="{{$userData['email']}}"  maxlength='50' /> @
               <select id='emailDomain' name='emailDomain'>
-                <option value="{{$userData['emailDomain']}}">{{$userData['emailDomain']}}</option>
-                <option value='naver.com'>naver.com</option>
-                <option value='gmail.com'>gmail.com</option>
-                <option value='daum.com'>daum.com</option>
+                <option value='naver.com' @if ($userData['emailDomain'] == 'naver.com') selected @endif >naver.com</option>
+                <option value='gmail.com' @if ($userData['emailDomain'] == 'gmail.com') selected @endif >gmail.com</option>
+                <option value='daum.com' @if ($userData['emailDomain'] == 'daum.com') selected @endif >daum.com</option>
               </select>
             </td>
           </tr>
@@ -104,6 +103,7 @@
         }
       }
     }
+    
     //다음 우편번호 api
     function addressModal() {
         new daum.Postcode({
@@ -119,6 +119,7 @@
           popupName : 'postCodePopup'
         });
     }
+
     //데이터 유효성 검사 및 전송
     function update(){
   		 var pw = $('#userPw').val();
@@ -131,79 +132,111 @@
        var email = $('#email').val();
        var emailCheck = email.search(/[`~!@#$%^&*()<>?]/g);
 
-       //addressDetail 특문체크
-       var address = $('#addressDetail').val();
-       var addressCheck = address.search(/[`~!@#$%^&*()<>?]/g);
+       //도로명 주소 특문체크
+       var addressDetail = $('#addressDetail').val();
+       var addressDetailCheck = addressDetail.search(/[`~!@#$%^&*()<>?]/g);
 
+       var addressRoad = $('#addressRoad').val();
+       var addressRoadCheck = addressRoad.search(/[`~!@#$%^&*()<>?]/g);
+
+       var addressNum = $('#addressNum').val();
+       var addressNumCheck = addressNum.search(/[`~!@#$%^&*()<>?]/g);
+       var addressEngCheck = addressNum.search(/[a-z]/ig); 
+      
        //비밀번호 빈값 체크
        if (!pw) {
-  			 alert('비밀번호를 입력해주세요');
-  			 return;
-  		 } 
+         alert('비밀번호를 입력해주세요');
+         return false;
+       } 
+      
        //비밀번호 확인 빈값 체크
        if (!pwCheck) {
-  			 alert('비밀번호 확인을 입력해주세요');
-  			 return;
-  		 } 
-       
+         alert('비밀번호 확인을 입력해주세요');
+         return false;
+       } 
+      
        //비밀번호 자릿수 및 공백, 영어 숫자 특문 혼용 확인, 일치 확인
-       if (pw !== pwCheck
-  			 && pw
-  			 && pwCheck) {
-  			 alert('비밀번호가 일치하지 않습니다.');
-  			 return;
-  		 } else if (pw.length < 8 || pw.length > 20) {
-  			alert('8자리 ~ 20자리 이내로 입력해주세요.');
-  			return;
-  		 } else if (pw.search(/\s/) != -1){
-  			alert('비밀번호는 공백 없이 입력해주세요.');
-  			return;
-  		 } else if (num < 0 || eng < 0 || spe < 0 ) {
-  			alert('영문,숫자, 특수문자를 혼합하여 입력해주세요.');
-  			return;
-  		 } 
-       
-       //전화번호 빈값 체크
+       if (pw !== pwCheck && pw && pwCheck) {
+         alert('비밀번호가 일치하지 않습니다.');
+         return false;
+       } else if (pw.length < 8 || pw.length > 20) {
+         alert('비밀번호는 8자리 ~ 20자리 이내로 입력해주세요.');
+         return false;
+       } else if (pw.search(/\s/) != -1) {
+         alert('비밀번호는 공백 없이 입력해주세요.');
+         return false;
+       } else if (num < 0 || eng < 0 || spe < 0 ) {
+       alert('영문,숫자, 특수문자를 혼합하여 입력해주세요.');
+         return false;
+       } 
+     
+       //전화번호 빈값 체크 및 전화번소 자릿수 체크
        if (Number($('#tel').val().length) <= 0) {
-  			 alert('전화번호를 입력해주세요');
-  			 return;
-  		 } else if(Number($('#tel').val().length) != 11) {
-  			 alert('전화번호를 재대로 입력해주세요');
-  			 return;
-  		 } 
-       
+         alert('전화번호를 입력해주세요');
+         return false;
+       } else if (Number($('#tel').val().length) != 11) {
+         alert('전화번호를 재대로 입력해주세요');
+         return false;
+       } 
+      
        //이메일 빈값 체크
        if(!email) {
-  			 alert('이메일을 입력해주세요');
-  			 return;
-  		 } 
-       
-       //이메일 특문 및 공백체크
-       if (emailCheck > -1 || email.search(/\s/) != -1) {
-         alert('정상적인 email을 입력해주세요');
-         return;
+         alert('이메일을 입력해주세요');
+         return false;
        } 
        
-       //상세주소 빈값 체크
-       if(!address) {
-  			 alert('주소를 입력해주세요');
-  			 return;
-  		 } 
+       //이메일 도메인 체크
+       if ($('#emailDomain').val() == '선택') {
+         alert('이메일 도메인을 선택해주세요.');
+         return false;
+       }
+      
+       //이메일 특문 및 공백 체크
+       if (emailCheck > -1 || email.search(/\s/) != -1) {
+         alert('정상적인 email을 입력해주세요');
+        return false; 
+       } 
        
-       //상세주소 특문 체크
-       if (addressCheck > -1) {
-         alert('정상적인 주소를 입력해주세요');
-         return;
+       //적립금 빈값 체크
+       if (!$('#accumulated').val()) {
+         alert('적립금 액수를 입력해주세요.');
+         return false;
+       } 
+ 
+       //주소 빈값 체크
+       if(!addressNum) {
+         alert('우편번호를 입력해주세요');
+         return false;
+       } else if(!addressRoad) {
+         alert('도로명주소를 입력해주세요');
+         return false;
+       } else if (!addressDetail){
+         alert('상세주소를 입력해주세요');
+         return false;
+       }
+      
+       //주소 특문 체크
+       if (addressNumCheck > -1 || addressEngCheck > -1) {
+         alert('정상적인 우편번호를 입력해주세요');
+         return false;
+       } else  if (addressRoadCheck > -1) {
+         alert('정상적인 도로명주소를 입력해주세요');
+         return false;
+       } else if (addressDetailCheck > -1) {
+         alert('정상적인 상세주소를 입력해주세요');
+         return false;
        } 
        
        //파일 유무 체크
        if($('#file').val() != '') {
-  			 var ext = $('#file').val().split('.').pop().toLowerCase();
-  			 if($.inArray(ext,['jpg','png']) == -1){
-  				 alert('jpg, png 파일만 업로드 가능합니다.');
-  				 return;
-  			 }
-       }
+         //파일의 이름중에서 확장자만을 추출한다.
+         var ext = $('#file').val().split('.').pop().toLowerCase();
+         //확장자명이 jpg나 png일떄만 실행
+         if($.inArray(ext,['jpg','png']) == -1){
+           alert('jpg, png 파일만 업로드 가능합니다.');
+           return false;
+         }
+       } 
 
        var formData =new FormData($('#userUpdate')[0]);
        //유저 업데이트
