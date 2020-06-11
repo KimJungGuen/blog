@@ -14,15 +14,6 @@ class NoticeBoard extends Model
   protected $table = 'user';
   public $timestamps = false;
 
-  //paginate를 이용한 페이지 정보 및 표시할 유저정보 조회
-  public function getList(int $pageLimit, array $searchData)
-  {
-    $users = $this->orderBy($searchData['listSort'], $searchData['listOrderBy'])
-                  ->paginate($pageLimit);
-
-    return $users;
-  }
-
   //모든 유저 조회
   public function getUserAll() 
   {
@@ -108,32 +99,32 @@ class NoticeBoard extends Model
   }
 
   //첫번째 검색필드와 검색 키워드 where 로직
-  public function scopeSearchFilterFir($query, array $search)
+  public function scopeSearchFilterFirst($query, array $search)
   {
     //설정된 필터와 키워드가 있을경우
-    if (!empty($search['filterFir']) && !empty($search['searchTextFir'])) {
+    if (!empty($search['filterFirst']) && !empty($search['searchFirstWord'])) {
       //email 필터를 골랐을 경우 도메인을 검색에서 제외
-      if($search['filterFir'] == 'email') {
-        return $query->where($search['filterFir'], 'like', '%'. $search['searchTextFir'] .'%@%'); 
+      if($search['filterFirst'] == 'email') {
+        return $query->where($search['filterFirst'], 'like', '%'. $search['searchFirstWord'] .'%@%'); 
       }
       //설정된 필터와 검색어로 검색
-      return $query->where($search['filterFir'], 'like', '%'. $search['searchTextFir'] .'%'); 
+      return $query->where($search['filterFirst'], 'like', '%'. $search['searchFirstWord'] .'%'); 
     } else {
       return $query; //없을경우는 설정 제외
     }
   }
 
   //두번째 검색필드와 검색 키워드 where 로직
-  public function scopeSearchFilterSec($query, array $search)
+  public function scopeSearchfilterSecond($query, array $search)
   {
     //설정된 필터와 키워드가 있을경우
-    if (!empty($search['filterSec']) && !empty($search['searchTextSec'])) {
+    if (!empty($search['filterSecond']) && !empty($search['searchSecondWord'])) {
       //email 필터를 골랐을 경우 도메인을 검색에서 제외
-      if($search['filterSec'] == 'email') {
-        return $query->where($search['filterSec'], 'like', '%'. $search['searchTextSec'] .'%@%'); 
+      if($search['filterSecond'] == 'email') {
+        return $query->where($search['filterSecond'], 'like', '%'. $search['searchSecondWord'] .'%@%'); 
       }
       //설정된 필터와 검색어로 검색
-      return $query->where($search['filterSec'], 'like', '%'. $search['searchTextSec'] .'%'); 
+      return $query->where($search['filterSecond'], 'like', '%'. $search['searchSecondWord'] .'%'); 
     } else {
       return $query; //없을 경우는 설정 제외
     }
@@ -152,24 +143,27 @@ class NoticeBoard extends Model
       case 'sleep':
         return $query->onlyTrashed(); //소프트 딜리트 된 데이터 만 검색
         break;
+      default:
+        return $query;
+        break;
     }
   }
 
   //정확한 날짜 비교를 위해 날짜 포맷 변경
   public function scopeSearchDateFormat($query, array $search)
   {
-    $search['searchDateFir'] = Carbon::createFromFormat('Y-m-d', $search['searchDateFir'])->format("Y-m-d 00:00:00");
-    $search['searchDateSec'] = Carbon::createFromFormat('Y-m-d', $search['searchDateSec'])->format("Y-m-d 23:59:59");
+    $search['searchDateFirst'] = Carbon::createFromFormat('Y-m-d', $search['searchDateFirst'])->format("Y-m-d 00:00:00");
+    $search['searchDateSecond'] = Carbon::createFromFormat('Y-m-d', $search['searchDateSecond'])->format("Y-m-d 23:59:59");
 
-    return $query->whereBetween('join_date', [$search['searchDateFir'], $search['searchDateSec']]); //두 날짜 사이에 가입 날짜 조회
+    return $query->whereBetween('join_date', [$search['searchDateFirst'], $search['searchDateSecond']]); //두 날짜 사이에 가입 날짜 조회
   }
 
   //모든 유저 검색
-  public function searchUsers(array $search, int $pageLimit) 
+  public function getUserList(array $search) 
   {
     $users = $this->searchStatus($search) //유저 상태에 따른 검색
-                  ->searchFilterFir($search)  //검색필터와 검색어 where절 첫번쨰 필드
-                  ->searchFilterSec($search)  //검색필터와 검색어 where절 두번쨰 필드
+                  ->searchFilterFirst($search)  //검색필터와 검색어 where절 첫번쨰 필드
+                  ->searchfilterSecond($search)  //검색필터와 검색어 where절 두번쨰 필드
                   ->when($search['gender'] == 'M' , function($query, $search) { //유저 성별에 따른 조건 검색
                     return $query->where('gender', 1); // 1 = 남
                   })
@@ -178,17 +172,7 @@ class NoticeBoard extends Model
                   })
                   ->searchDateFormat($search)
                   ->orderBy($search['sort'], $search['orderBy'])
-                  ->paginate($pageLimit);
-
-    return $users;
-  }
-
-  //검색버튼만 눌렀을경우 정렬만 적용된 유저 전체 
-  public function getUserAllPaginate(array $search, int $pageLimit) 
-  {
-    $users = $this->withTrashed()
-                  ->orderBy($search['sort'], $search['orderBy'])
-                  ->paginate($pageLimit);
+                  ->paginate($search['searchPageLimit']);
 
     return $users;
   }
@@ -210,7 +194,9 @@ class NoticeBoard extends Model
     return $result;
   }
 
-  public function average() {
+
+  //유저 통계 구하기
+  public function averageData() {
     
     $sqlResult = DB::select(
       "select 
@@ -228,7 +214,7 @@ class NoticeBoard extends Model
         (select count('index') from user where accumulated >= 10000) AS hightAccumulated,
         (select sum(accumulated) from user) AS totalAccumulated"
     );
-    
+
     $result = collect($sqlResult[0]);
     return $result;
   }

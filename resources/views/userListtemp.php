@@ -1,4 +1,193 @@
-<!doctype html>
+var pw = $('#userPw').val();
+      var pwCheck = $('#userPwCheck').val();
+
+      //search() 검사하는 값이 없을경우 -1을 반환
+      var num = pw.search(/[0-9]/);
+      var eng = pw.search(/[a-z]/i);
+      var spe = pw.search(/[~!@#$%^&*()<>?]/);
+
+      //유저 이름 특문 체크
+      var name = $('#name').val();
+      var nameCheck = name.search(/[~!@#$%^&*()<>?]/g);
+
+      //email 특문체크
+      var email = $('#email').val();
+      var emailCheck = email.search(/[~!@#$%^&*()<>?]/g);
+
+      //addressDetail 특문체크
+      var addressNum = $('#addressNum').val();
+      var addressNumCheck = addressNum.search(/[~!@#$%^&*()<>?]/g);
+
+      //addressDetail 특문체크
+      var addressRoad = $('#addressRoad').val();
+      var addressRoadCheck = addressRoad.search(/[~!@#$%^&*()<>?]/g);
+
+      //addressDetail 특문체크
+      var addressDetail = $('#addressDetail').val();
+      var addressDetailCheck = addressDetail.search(/[~!@#$%^&*()<>?]/g);
+
+      //이름 빈값 체크
+      if (!name) 
+      {
+        alert('이름을 입력해주세요');
+        return false;
+      } 
+
+      //이름 특문 체크
+      if (nameCheck > -1 || name.search(/\s/) != -1) {
+        alert('정상적인 이름을 입력해주세요');
+        return false;
+      } 
+      
+      //아이디 빈값체크 및 중복확인 확인여부 체크
+      if (!$('#userId').val()) {
+        alert('아이디를 입력해주세요');
+        return false;
+      } else if (Number($('#idStatus').val()) < 1) {
+        alert('아이디 중복확인을 해주세요');
+        return false;
+      } 
+      
+      //비밀번호 빈값 체크
+      if (!pw) {
+        alert('비밀번호를 입력해주세요');
+        return false;
+      } 
+      
+      //비밀번호 확인 빈값 체크
+      if (!pwCheck) {
+        alert('비밀번호 확인을 입력해주세요');
+        return false;
+      } 
+      
+
+      //비밀번호 자릿수 및 공백, 영어 숫자 특문 혼용 확인, 일치 확인
+      if (pw !== pwCheck && pw && pwCheck) {
+        alert('비밀번호가 일치하지 않습니다.');
+        return false;
+      } else if (pw.length < 8 || pw.length > 20) {
+       alert('비밀번호는 8자리 ~ 20자리 이내로 입력해주세요.');
+       return false;
+      } else if (pw.search(/\s/) != -1) {
+       alert('비밀번호는 공백 없이 입력해주세요.');
+       return false;
+      } else if (num < 0 || eng < 0 || spe < 0 ) {
+       alert('영문,숫자, 특수문자를 혼합하여 입력해주세요.');
+       return false;
+      } 
+      
+      //성별체크 확인
+      if($('#gender').val() === '선택') {
+        alert('성별을 선택해주세요');
+        return false;
+      } 
+      
+      //나이 빈값확인 및 정상값 체크
+      if(!$('#age').val()) {
+        alert('나이를 입력해주세요');
+        return false;
+      } else if (
+        Number($('#age').val()) <= 0
+        && Number($('#age').val()) >= 100
+        ) {
+        alert('나이를 재대로 입력해주세요');
+        return false;
+      } 
+      
+      //전화번호 빈값 체크 및 전화번소 자릿수 체크
+      if (Number($('#tel').val().length) <= 0) {
+        alert('전화번호를 입력해주세요');
+        return false;
+      } else if (Number($('#tel').val().length) != 11) {
+        alert('전화번호를 재대로 입력해주세요');
+        return false;
+      } 
+      
+      //이메일 빈값 체크
+      if(!email) {
+        alert('이메일을 입력해주세요');
+        return false;
+      } 
+      
+      //이메일 도메인 체크
+      if ($('#emailDomain').val() == '선택') {
+        alert('이메일 도메인을 선택해주세요.');
+        return false;
+      }
+      
+      //이메일 특문 및 공백 체크
+      if (emailCheck > -1 || email.search(/\s/) != -1) {
+        alert('정상적인 email을 입력해주세요');
+        return false; 
+      } 
+      
+      //적립금 빈값 체크
+      if (!$('#accumulated').val()) {
+        alert('적립금 액수를 입력해주세요.');
+        return false;
+      } 
+
+      //주소 빈값 체크
+      if(!addressNum) {
+        alert('우편번호를 입력해주세요');
+        return false;
+      } else if(!addressRoad) {
+        alert('도로명주소를 입력해주세요');
+        return false;
+      } else if (!addressDetail){
+        alert('상세주소를 입력해주세요');
+        return false;
+      }
+      
+      //주소 특문 체크
+      if (addressNumCheck > -1) {
+        alert('정상적인 우편번호를 입력해주세요');
+        return false;
+      } else  if (addressRoadCheck > -1) {
+        alert('정상적인 도로명주소를 입력해주세요');
+        return false;
+      } else if (addressDetailCheck > -1) {
+        alert('정상적인 상세주소를 입력해주세요');
+        return false;
+      } 
+      
+      //파일 유무 체크
+      if($('#file').val() != '') {
+        //파일의 이름중에서 확장자만을 추출한다.
+        var ext = $('#file').val().split('.').pop().toLowerCase();
+        //확장자명이 jpg나 png일떄만 실행
+        if($.inArray(ext,['jpg','png']) == -1){
+          alert('jpg, png 파일만 업로드 가능합니다.');
+          return false;
+        }
+      } 
+      
+      if (!$('#agree:checked').val()) {
+        alert('개인정보수집동의 박스를 체크해주세요.');
+        return false;
+      }
+
+      //ajax file전송을 위해서 FormData를 활용 *업데이트 부분 주석과 동일
+      var formData =new FormData($('#userCreate')[0]);
+      $.ajax({
+        url:'/users',
+        type:'post',
+        data:formData,
+        processData: false,  
+        contentType: false, 
+        datatype:'json',
+        success:function(result)
+        {
+          alert(result.msg);
+          //$(location).attr('href', '/users');
+        }, error:function(request)
+        {
+          var errors = request.responseJSON.errors;
+          var error = '';
+          $.each(errors, function(index, value) 
+          {
+            error += value + '\n';
+          });<!doctype html>
 <html>
   <head>
     <meta charset="utf-8">
@@ -18,7 +207,7 @@
   <body>
     <div>
       <form id="searchForm" name="search" class="form" method="get" action="/users">
-      <input id="searchPageLimit" name="searchPageLimit" value="5" type="hidden" /> 
+        <input type="hidden" id="searchPageLimit" name="searchPageLimit" value="" />
         <table class="table table-bordered">
           <thead class="text-center table-primary">
             <tr><th colspan="2">검색</th></tr>
@@ -29,11 +218,11 @@
               <td>
                 <select id="filterFirst" name="filterFirst">
                   <option value="">선택</option>
-                  <option value="user_id" @if ($searchData['filterFirst'] == 'user_id') selected @endif>ID</option>
-                  <option value="name" @if ($searchData['filterFirst'] == 'name') selected @endif>이름</option>
-                  <option value="email" @if ($searchData['filterFirst'] == 'email') selected @endif>email</option>
+                  <option value="user_id" @if ($searchData['filterFirstst'] == 'user_id') selected @endif>ID</option>
+                  <option value="name" @if ($searchData['filterFirst"] == 'name') selected @endif>이름</option>
+                  <option value="email" @if ($searchData['filterFirst"] == 'email') selected @endif>email</option>
                 </select>
-                <input type="text" id="searchFirstWord" name="searchFirstWord" value="{{$searchData['searchFirstWord']}}" />
+                <input type="text" id="searchFirWord" name="searchFirWord" value="{{$searchData['searchTextFir']}}" />
               </td>
             </tr>
             <tr>
@@ -44,14 +233,14 @@
                   <option value="name" @if ($searchData['filterSecond'] == 'name') selected @endif>이름</option>
                   <option value="email" @if ($searchData['filterSecond'] == 'email') selected @endif>email</option>
                 </select>
-                <input type="text" id="searchSecondWord" name="searchSecondWord" value="{{$searchData['searchSecondWord']}}" />
+                <input type="text" id="searchSecWord" name="searchSecWord" value="{{$searchData['searchTextSec']}}" />
               </td>
             </tr>
             <tr>
               <td class="table-primary">상태</td>
               <td>
-                <input id="searchUserAll" name="searchUserAll" value="all" onclick="statusCheckBox();" type="checkbox" @if ($searchData['userStatus'] == 'all') checked @elseif (empty($searchData['userStatus'])) checked @endif> 모든계정
-                <input id="searchUserActive" name="searchUserActive" value="active" onclick="statusCheckBox();" type="checkbox" @if ($searchData['userStatus'] == 'active') checked @endif> 사용계정
+                <input id="searchUserAll" name="searchUserAll" value="all" onclick="statusCheckBox();"  type="checkbox" @if ($searchData['userStatus'] == 'all') checked @endif> 모든계정
+                <input id="searchUserActive" name="searchUserActive" value="active" onclick="statusCheckBox();" type="checkbox" @if ($searchData['userStatus'] == "active') checked @endif> 사용계정
                 <input id="searchUserSleep" name="searchUserSleep" value="sleep" onclick="statusCheckBox();" type="checkbox" @if ($searchData['userStatus'] == 'sleep') checked @endif> 휴먼계정
               </td>
             </tr>
@@ -59,15 +248,15 @@
               <td class="table-primary">성별</td>
               <td>
                 <input type="radio" id="gender" name="gender" value="all" @if ($searchData['gender'] == 'all') checked @endif/>전체
-                <input type="radio"  name="gender" value="M"  @if ($searchData['gender'] == 'M') checked @endif/>남
-                <input type="radio"  name="gender" value="F"  @if ($searchData['gender'] == 'F') checked @endif/>여
+                <input type="radio"  name="gender" value="M" @if ($searchData['gender'] == 'M') checked @endif />남
+                <input type="radio"  name="gender" value="F" @if ($searchData['gender'] == 'F') checked @endif />여
               </td>
             </tr>
             <tr>
               <td class="table-primary">가입일</td>
               <td>
-                <input type="date" id="searchDateFirst" name="searchDateFirst" value="{{$searchData['searchDateFirst']}}"/>
-                <input type="date" id="searchDateSecond" name="searchDateSecond" value="{{$searchData['searchDateSecond']}}"/>
+                <input type="date" id="searchDateFir" name="searchDateFir" value="{{$searchData['searchDateFir']}}"/>
+                <input type="date" id="searchDateSec" name="searchDateSec" value="{{$searchData['searchDateSec']}}"/>
               </td>
             </tr>
             <tr>
@@ -76,7 +265,7 @@
                 <select id="sort" name="sort" onchange="changePage();">
                   <option value="index" @if ($searchData['sort'] == 'index') selected @endif>번호</option>
                   <option value="accumulated" @if ($searchData['sort'] == 'accumulated') selected @endif>적립금</option>
-                  <option value="age" @if ($searchData['sort'] == 'age') selected @endif> 나이</option>
+                  <option value="age" @if ($searchData['sort'] == 'age') selected @endif>나이</option>
                 </select>
                   <select id="orderBy" name="orderBy" onchange="changePage();">
                   <option value="asc" @if ($searchData['orderBy'] == 'asc') selected @endif>오름차순</option>
@@ -96,7 +285,7 @@
     </div>
 
     <div>
-      <p style="position:absolute; height:3.3%; top:40%; left:20%;" > 조회된 건 수 : {{$users->total()}}  </p>
+      <p style="position:absolute; height:3.3%; top:40%; left:20%;" > 조회된 건 수 : {{$pageView["total"]}} </p>
       <input type="button" class="btn btn-primary"
       style="position:absolute; top:40%; left:87%; height:3.5%;"
       value="유저등록"
@@ -106,18 +295,19 @@
       style="position:absolute; top:40%; left: 92%; height: 3.5%;"
       value="유저탈퇴"
       onclick="userDelete()"/>
-
-      <select style="position:absolute; height:3.3%; top:40%; left:98%;" id="pageLimit" name="pageLimit" onchange="$('#searchPageLimit').val(this.value); searchUsers();">
+      <form id="ordinaryForm" name="ordinary" class="form" method="get" action="/users">
+        <input type="hidden" id="listSort" name="listSort" value="{{$searchData['sort']}}" />
+        <input type="hidden" id="listOrderBy" name="listOrderBy" value="{{$searchData['orderBy']}}" />
+        <select style="position:absolute; height:3.3%; top:40%; left:98%;" id="pageLimit" name="pageLimit" onchange="changePage();">
           @for($i=1;$i<=10;$i++)
-            @if($i == $searchData['searchPageLimit'])
+            @if($i == $pageView['pageLimit'])
               <option value={{$i}} selected>{{$i}}</option>
             @else
               <option value={{$i}}>{{$i}}</option>
             @endif
           @endfor
-      </select>
+        </select>
 
-      <form id="ordinaryForm" name="ordinary" class="form" method="get" action="/users">
         <table class="table table-bordered text-center">
           <thead>
             <tr>
@@ -138,28 +328,28 @@
             </tr>
           </thead>
           <tbody>
-            @if(isset($users) && count($users) > 0)
-              @foreach($users as $index => $user)
-              <tr name="user" onclick="userPwCheck('{{$user->index}}');" >
-                <td onclick="event.cancelBubble=true"><input class="deleteBox" type="checkbox" value="{{$user->index}}"></td>
-                <td>{{$loop->iteration + $users->perPage() * ($users->currentPage() - 1)}}</td>
-                <td >{{$user->index}}</td>
-                <td >{{$userStatus[$index]}}</td>
-                <td >{{$user->name}}</td>
-                <td >{{$user->user_id}}</td>
-                <td >{{$user->gender}}</td>
-                <td >{{$user->age}}</td>
-                <td >{{$user->tel}}</td>
-                <td >{{$user->email}}</td>
-                <td >{{$user->accumulated}}</td>
-                <td >{{$user->join_date}}</td>
-                <td>이동</td>
-                <td>순서변경</td>
-              </tr>
-                @endforeach
-            @else
-              <tr><td class="table-dark" colspan="14">동록된 데이터가 없습니다.</td></tr>
-            @endif
+          @if(isset($users) && count($users) > 0)
+            @foreach($users as $index => $user)
+            <tr name="user" onclick="userPwCheck("{{$user->index}}");" >
+              <td onclick="event.cancelBubble=true"><input class="deleteBox" type="checkbox" value="{{$user->index}}"></td>
+              <td>{{$loop->iteration}}</td>
+              <td >{{$user->index}}</td>
+              <td >{{$usersData['userStatus[$index]']}}</td>
+              <td >{{$user->name}}</td>
+              <td >{{$user->user_id}}</td>
+              <td >{{$user->gender}}</td>
+              <td >{{$user->age}}</td>
+              <td >{{$user->tel}}</td>
+              <td >{{$user->email}}</td>
+              <td >{{$user->accumulated}}</td>
+              <td >{{$user->join_date}}</td>
+              <td>이동</td>
+              <td>순서변경</td>
+            </tr>
+              @endforeach
+          @else
+            <tr><td class="table-dark" colspan="14">동록된 데이터가 없습니다.</td></tr>
+          @endif
           </tbody>
           
         </table>
@@ -184,9 +374,9 @@
             <td>탈퇴계정</td>
           </tr>
           <tr>
-            <td>{{$averageData['total']}}명</td>
-            <td>{{$averageData['active']}}명</td>
-            <td>{{$averageData['sleep']}}명</td>
+            <td>{{$avgData['total']}}명</td>
+            <td>{{$avgData['active']}}명</td>
+            <td>{{$avgData['sleep']}}명</td>
             <td>0명</td>
           </tr>
           <tr>
@@ -197,8 +387,8 @@
             <td></td>
           </tr>
           <tr>
-            <td>{{$averageData['male']}}명</td>
-            <td>{{$averageData['female']}}명</td>
+            <td>{{$avgData['male']}}명</td>
+            <td>{{$avgData['female']}}명</td>
             <td></td>
             <td></td>
           </tr>
@@ -210,10 +400,10 @@
             <td>60세 이상</td>
           </tr>
           <tr>
-            <td>{{$averageData['children']}}명</td>
-            <td>{{$averageData['young']}}명</td>
-            <td>{{$averageData['adult']}}명</td>
-            <td>{{$averageData['old']}}명</td>
+            <td>{{$avgData['children']}}명</td>
+            <td>{{$avgData['young']}}명</td>
+            <td>{{$avgData['adult']}}명</td>
+            <td>{{$avgData['old']}}명</td>
           </tr>
           <tr>
             <td class="table-primary" rowspan="2">적립금별</td>
@@ -223,16 +413,16 @@
             <td>적립금 총액</td>
           </tr>
           <tr>
-            <td>{{$averageData['minAccumulated']}}명</td>
-            <td>{{$averageData['middleAccumulated']}}명</td>
-            <td>{{$averageData['hightAccumulated']}}명</td>
-            <td>{{$averageData['totalAccumulated']}}원</td>
+            <td>{{$avgData['minAccumulated']}}명</td>
+            <td>{{$avgData['middleAccumulated']}}명</td>
+            <td>{{$avgData['hightAccumulated']}}명</td>
+            <td>{{$avgData['totalAccumulated']}}원</td>
           </tr>
         </tbody>
       </table>
     </div>
     @if($errors->any())
-      <input type="hidden" id="error" value="{{$errors->first('searchDateFirst')}}" />
+      <input type="hidden" id="error" value="{{$errors->first('searchDateFir')}}" />
     @endif
 
     @csrf
@@ -315,16 +505,16 @@
       //유저 조회
       function searchUsers() {
         //첫번쨰 검색어 필드 특문체크
-        var searchFirstWord = $("#searchFirstWord").val();
-        var textCheckFirst = searchFirstWord.search(/[~!@#$%^&*()<>?]/g);
+        var searchFirWord = $("#searchFirWord").val();
+        var textCheckFir = searchFirWord.search(/[~!@#$%^&*()<>?]/g);
 
         //두번쨰 검색어 필트 특문체크
-        var searchSecondWord = $("#searchSecondWord").val();
-        var textCheckSecond = searchSecondWord.search(/[~!@#$%^&*()<>?]/g);
+        var searchSecWord = $("#searchSecWord").val();
+        var textCheckSec = searchSecWord.search(/[~!@#$%^&*()<>?]/g);
 
         //검색날짜 시작일 종료일
-        var searchDateAfter = $("#searchDateFirst").val();
-        var searchDateBefore = $("#searchDateSecond").val();
+        var searchDateAfter = $("#searchDateFir").val();
+        var searchDateBefore = $("#searchDateSec").val();
 
         var userAll = $("#searchUserAll").prop("checked");
         var userActive = $("#searchUserActive").prop("checked");
@@ -342,7 +532,7 @@
           return false;
         }
 
-        //날짜연산을 위해서 문자 -제거 //문제있음
+        //날짜연산을 위해서 문자 -제거
         var dateAfter = searchDateAfter.split("-");
         var dateBefore = searchDateBefore.split("-");
         var dateValue = 0;
@@ -353,7 +543,6 @@
 
         //검색 시작일이 종료일보다 늦을경우
         if (dateValue < 0) {
-          alert(dateValue);
           alert("시작일을 종료일보다 앞 선 날짜로 설정해주세요.");
           return false;
         }
@@ -361,10 +550,8 @@
         //기존 pageLimit은 form이달라 값에 포함이 안되어 따로 searchForm에 할당
         $("#searchPageLimit").attr("value",$("#pageLimit option:selected").val());
 
-        var formData = $('.form').serialize();
-
-        if (textCheckFirst == -1 && textCheckSecond == -1) {
-            $('#searchForm').submit();
+        if (textCheckFir == -1 && textCheckSec == -1) {
+            $("#searchForm").submit();
         } else {
           alert("검색어를 재대로 입력해주세요.");
           return false;
@@ -401,11 +588,11 @@
         //radio
         $("#gender").prop("checked", true);
         //text
-        $("#searchFirstWord").val("");
-        $("#searchSecondWord").val("");
+        $("#searchFirWord").val("");
+        $("#searchSecWord").val("");
         //date
-        $("#searchDateFirst").val(dateDefaultAfter);
-        $("#searchDateSecond").val(dateDefaultBefore);
+        $("#searchDateFir").val(dateDefaultAfter);
+        $("#searchDateSec").val(dateDefaultBefore);
         //check box
         $("#searchUserAll").prop("checked", true);
         $("#searchUserActive").prop("checked", false);;
@@ -421,16 +608,25 @@
 
       //users페이지와 userSearch페이지 orderBy 및 pageLimit 재정렬
       function changePage() {
-        var afterFormData = $(location).attr('href').split('?').pop();
-        var formData = $('.form').serialize();
-        var queryString = $(location).attr('href').split('&');
-        var pageLimit = $("#pageLimit option:selected").val();
-        var sort = $('#sort option:selected').val();
-        var orderBy = $('#orderBy option:selected').val();
+        //url기준으로 메인 users페이지 조절인지 search페이지 조절인지 구분
+        var actionUrl = $(location).attr("href").split("/").pop().split("?");
 
+        if ( "users" == actionUrl[0]) {
+          //검색 전 재정렬시 검색어 필드는 초기화
+          //filter
+          $("#filterFirst").val("");
+          $("#filterSecond").val("");
+          //text
+          $("#searchFirWord").val("");
+          $("#searchSecWord").val("");
+        }
         
-        $('#searchForm').submit();
+        $("#listOrderBy").attr("value",$("#orderBy option:selected").val());
+        $("#listSort").attr("value",$("#sort option:selected").val());
+        //기존 pageLimit은 form이달라 값에 포함이 안되어 따로 searchForm에 할당
+        $("#searchPageLimit").attr("value",$("#pageLimit option:selected").val());
 
+        ("users" == actionUrl[0]) ? $("#ordinaryForm").submit() : $("#searchForm").submit();
       }
 
       //유저 삭제
@@ -477,3 +673,68 @@
     </script>
   </body>
 </html>
+
+          alert(error);
+        }
+      });   
+
+
+
+
+
+
+      $test = $this->select(function ($query){
+                   $query->withTrashed()->select('index as total')->count();
+                 },
+                 function ($query) {
+                   $query->select('index as active')->count();
+                 },
+                 function ($query) {
+                   $query->withTrashed()->select('index as sleep')->whereNotNull('deleted_at')->count();
+                 }
+                )
+
+
+
+
+
+                
+                $this->withTrashed()
+                  ->select(['total' => $this->select('index')
+                    ->withTrashed()
+                  ])
+                  ->addselect(['active' => $this->select('index')
+                  ])
+                  ->addselect(['male' => $this->select('index')
+                    ->withTrashed()
+                    ->where('gender', 1)
+                  ])
+                  ->addselect(['young' => $this->select('index')
+                    ->withTrashed()
+                    ->whereBetween('age', [20, 39])
+                  ])
+                  ->addselect(['adult' => $this->select('index')
+                    ->withTrashed()
+                    ->whereBetween('age', [40, 59])
+                  ])
+                  ->addselect(['old' => $this->select('index')
+                    ->withTrashed()
+                    ->where('age', '>', 60)
+                  ])
+                  ->addselect(['middleAccumulated' => $this->select('index')
+                    ->withTrashed()
+                    ->whereBetween('accumulated', [1000, 9999])
+                  ])
+                  ->addselect(['hightAccumulated' => $this->select('index')
+                    ->withTrashed()
+                    ->where('accumulated', '>=', 10000)
+                  ])->toSql();
+
+                 $test->groupBy('total');
+  $test->groupBy('active');
+  $test->groupBy('male');
+  $test->groupBy('young');
+  $test->groupBy('old');
+  $test->groupBy('middleAccumulated');
+  $test->groupBy('hightAccumulated');
+  $test->groupBy('totalAccumulated');

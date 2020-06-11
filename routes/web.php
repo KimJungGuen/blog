@@ -19,7 +19,7 @@ Route::get('/', function () {
 });
 
 //메인페이지
-Route::get('/users','UserController@users');
+Route::get('/users','UserController@index');
 //유저등록 페이지
 Route::get('/user',function(){
     return view('RegisterPage');
@@ -34,7 +34,5 @@ Route::post('/userPwCheck/{userIndex}', 'UserController@userPwCheck')->name('use
 Route::get('/userUpdate/{userIndex}', 'UserController@userUpdatePage')->middleware(History::class);
 //유저 업데이트 요청
 Route::put('/userUpdate', 'UserController@userUpdate')->name('update');
-//유저 검색
-Route::get('/userSearch', 'UserController@userSearch')->name('search');
 //유저 삭제
 Route::delete('/userDelete', 'UserController@userDelete');
