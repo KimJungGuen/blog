@@ -36,11 +36,11 @@ class UserRequest extends FormRequest
                     'userPw' => 'required|same:userPwCheck|between:5,20',
                     'userPwCheck' => 'required|between:5,20',
                     'tel' => 'required|digits:11|regex:/0[0-9]0[0-9]{8}$/',
-                    'gender' => 'required|numeric|max:2',
+                    'gender' => 'required|alpha|max:1',
                     'accumulated' => 'required|integer|min:0',
                     'addressNum' => 'required|max:5',
                     'addressRoad' => 'required',
-                    'marry' => 'required|numeric|max:1',
+                    'marry' => 'required|alpha|max:1',
                     'email' => 'required|alpha_num',
                     'emailDomain' => [Rule::in(['naver.com', 'daum.com', 'gmail.com'])],
                     'agree' => 'required'
@@ -49,8 +49,7 @@ class UserRequest extends FormRequest
             //유저 업데이트
             case 'update':
                 return [
-                    'userPw' => 'required|same:userPwCheck|between:5,20',
-                    'userPwCheck' => 'required|between:5,20',
+                    'userPw' => 'same:userPwCheck',
                     'tel' => 'required|digits:11|regex:/0[0-9]0[0-9]{8}$/',
                     'accumulated' => 'required|integer|min:0',
                     'addressNum' => 'required|max:5',
@@ -73,10 +72,8 @@ class UserRequest extends FormRequest
             
             //유저 pwCheck
             case 'userPwCheck':
-                $userIndex = request()->route()->userIndex;
-
                 return [
-                    'userPw' => ['required', Rule::exists('user','user_pw')->where('index', $userIndex)],
+                    'userPw' => 'required',
                 ];
         }
     }
@@ -106,7 +103,7 @@ class UserRequest extends FormRequest
                     'tel.digits' => '전화번호는 11자리와 숫자만 입력해주세요.',
                     'tel.regex' => '정상적인 전화번호를 입력해주세요.',
                     'gender.required' => '성별을 선택해주세요.',
-                    'gender.numeric' => '비정상적인 성별 값입니다.',
+                    'gender.alpha' => '비정상적인 성별 값입니다.',
                     'gender.max' => '비정상적인 성별 값입니다.',
                     'accumulated.required' => '적립금을 입력해주세요.',
                     'accumulated.integer' => '적립금은 숫자만 입력해주세요',
@@ -115,7 +112,7 @@ class UserRequest extends FormRequest
                     'addressNum.max' => '정상적인 우편번호를 입력해주세요.',
                     'addressRoad.required' => '도로명을 입력해주세요',
                     'marry.required' => '결혼상태를 선택해주세요.',
-                    'marry.numeric' => '결혼상태의 값이 비정상적입니다.',
+                    'marry.alpha' => '결혼상태의 값이 비정상적입니다.',
                     'marry.max' => '결혼상태의 값이 비정상적입니다.',
                     'email.required' => 'email을 입력해주세요.',
                     'email.alpha_num' => '정상적인 email을 입력해주세요.',
@@ -126,11 +123,7 @@ class UserRequest extends FormRequest
             //유저 업데이트 유효성 검사 메시지
             case 'update':
                 return [
-                    'userPw.required' => '비밀번호를 입력해주세요.',
                     'userPw.same' => '비밀번호와 비밀번호 확인이 일치하지 않습니다.',
-                    'userPw.between' => '비밀번호는 8자에서 20자 사이로 입력해주세요.',
-                    'userPwCheck.required' => '비밀번호 확인을 입력해주세요.',
-                    'userPwCheck.between' => '비밀번호는 8자에서 20자 사이로 입력해주세요.',
                     'tel.required' => '전화번호를 입력해주세요.',
                     'tel.digits' => '전화번호는 11자리와 숫자만 입력해주세요.',
                     'tel.regex' => '정상적인 전화번호를 입력해주세요.',
@@ -163,7 +156,6 @@ class UserRequest extends FormRequest
             //유저 pwCheck
             case 'userPwCheck':
                 return [
-                    'userPw.exists' => '비밀번호가 일치하지않습니다.',
                     'userPw.required' => '비밀번호를 입력해주세요.'
                 ];
         }

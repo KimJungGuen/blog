@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Requests\UserRequest;
@@ -15,13 +16,16 @@ class UserController extends Controller
     //삭제된 유저 복구 *softdelete삭제 복구용
     //$model->withTrashed()->restore();
  
+    /**
+     * 
+     */
     public function index(Request $request) 
     {
-       //dd($request);
+    
         $searchData = $this->searchData($request);
         $usersData = $this->usersData($searchData);
         $averageData = $this->averageData(); 
-        // dd($searchData);
+       
         return view('userList', array(
           'searchData' => $searchData,
           'users' => $usersData['users'],
@@ -75,7 +79,7 @@ class UserController extends Controller
         foreach ($users as $index => $user) {
           $user->join_date = str::substr($user->join_date, 0, 10);
           $user->gender = ($user->gender == 1) ? '남' : '여';
-          $userStatus[$index] = (empty($user->deleted_at)) ? '사용' : '휴면';
+          $userStatus[$index] = (is_null($user->deleted_at)) ? '사용' : '휴면';
           $user->accumulated = number_format($user->accumulated);
         }
 
@@ -94,5 +98,212 @@ class UserController extends Controller
         $aveData['totalAccumulated'] = number_format($aveData['totalAccumulated']);
 
         return $aveData;
+    }
+
+    public function userIdCheck(UserRequest $request)
+    {
+        //
+        $msg = '사용가능한 ID입니다.';
+        return response()->json(array('check' => true, 'msg' =>$msg));
+    }
+
+
+    public function userPwCheck(Request $request, int $userIndex)
+    {
+        $userModel = new Noticeboard();
+
+        //해당 유저 인덱스로 세션 생성
+        $userPw = md5($request->input('userPw'));
+
+        $result = $userModel->getUserPw($userIndex, $userPw);
+    
+        
+        if ($result) {
+          $pwcCheck = true;
+          $request->session()->put('userIndex', $userIndex);
+        } else {
+          $pwcCheck = false;
+        }
+      
+        return response()->json(array('pwCheck' => $pwcCheck));
+    }
+
+    public function userRegister(UserRequest $request)
+    {
+        $msg = '';
+        $result = false;
+        try{
+            if ($request->file('file')) {
+                $path = $request->file('file')->store('userFile');
+            } else {
+                $path = null;
+            }
+
+            $userModel = new NoticeBoard();
+            //들어온 전화번호를 -문자를 를 삽입한다.
+
+            $tel = preg_replace('/([0-9]{3})([0-9]{4})([0-9]{4})/', '$1-$2-$3', $request->input('tel'));
+
+            $email = $request->input('email') . '@' . $request->input('emailDomain');
+
+            $addressNum = $request->input('addressNum');
+            $addressRoad = $request->input('addressRoad');
+            $addressDetail = $request->input('addressDetail');
+            $userId = $request->input('userId');
+            $userPw = md5($request->input('userPw'));
+            $name = $request->input('name');
+            $gender = $request->input('gender');
+            $age = $request->input('age');
+            $accumulated = $request->input('accumulated');
+            $etc = $request->input('etc');
+            $join_date = now();
+            $marry = $request->input('marry');
+
+            $user = [
+                'userId' => $userId,
+                'userPw' => $userPw,
+                'name' => $name,
+                'gender' => $gender,
+                'age' => $age,
+                'accumulated' => $accumulated,
+                'email' => $email,
+                'addressNum' => $addressNum,
+                'addressRoad' => $addressRoad,
+                'addressDetail' => $addressDetail,
+                'etc' => $etc,
+                'join_date' => $join_date,
+                'marry' => $marry,
+                'tel' => $tel,
+                'file' => $path
+            ];
+
+            $result = $userModel->userInsert($user);
+
+            if (isset($result)) {
+                $msg = '회원등록에 성공했습니다.';
+            }
+        } catch (\Exception $e) {
+            $msg = '회원등록에 실패했습니다.';
+        }
+
+        return response()->json(array('msg' => $msg, 'result' => $result));
+    }
+
+    //유저 업데이트 페이지에 해당 PK의 유저정보 표시
+    public function userUpdatePage(Request $request, int $userIndex)
+    {
+        //세션이 있는지 체크
+        if ($request->session()->has('userIndex')) {
+            //세션 헤제
+            $request->session()->forget('userIndex');
+            $userModel = new NoticeBoard();
+            $user = $userModel->getUser($userIndex);
+
+            $etc = $user['etc'];
+            $accumulated = $user['accumulated'];
+            $addressNum = $user['address_num'];
+            $addressRoad = $user['address_road'];
+            $addressDetail = $user['address_detail'];
+            //email 표시를 위해 @기준으로 다시나눔
+            $email = Str::of($user['email'])->before('@');
+            $emailDomain = Str::of($user['email'])->after('@');
+            //tel표시를 위해 다시 숫자만 보이게 변환
+            $tel =  preg_replace('/-/', '',$user['tel']);
+
+            //img표시를 위해 파일의 위치 저장
+            $path = $user['file'];
+            $imgUrl = Storage::url($path);
+
+            $userData = [
+            'userIndex' => $userIndex,
+            'email' => $email,
+            'emailDomain' => $emailDomain,
+            'tel' => $tel,
+            'addressNum' => $addressNum,
+            'addressRoad' => $addressRoad,
+            'addressDetail' => $addressDetail,
+            'etc' => $etc,
+            'accumulated' => $accumulated,
+            'imgUrl' => $imgUrl
+            ];
+
+            return view('userUpdate',['userData' => $userData]);
+        } else {
+            return redirect('/users');
+        }
+    }
+
+    //유저 Update
+    public function userUpdate(UserRequest $request)
+    {
+        $msg = '';
+        $result = 0;
+        try{
+            $userModel = new NoticeBoard();
+            $userIndex = $request->input('userIndex');
+            $user = $userModel->getUser($userIndex);
+            $fileExt = $request->allFiles();
+            $etc = $request->input('etc');
+            $accumulated = $request->input('accumulated');
+
+            $inputUserPw = $request->input('userPw', null);
+
+            if (is_null($inputUserPw)) {
+                $user = $userModel->getUser($userIndex);
+                $userPw = $user->user_pw;
+            } else {
+                $inputUserPwLength = Str::of($inputUserPw)->length();
+
+                $user = $userModel->getUser($userIndex);
+    
+                if($inputUserPwLength < 5 || $inputUserPwLength > 20) {
+                    throw new \Exception('비밀번호는 5자에서 20자 사이로 입력해주세요.');
+                }
+
+                $userPw = md5($inputUserPw);
+            }
+
+            if ($fileExt) {
+                $path = $request->file('file')->store('userFile' , 'local');
+            } else {
+                $path = $user['file'];
+            }
+
+            //email 문자열 합산
+            $email = $request->input('email') . '@' . $request->input('emailDomain');
+
+            //전화번호 포멧으로 문자열 재배치 수정
+            $tel = preg_replace('/([0-9]{3})([0-9]{4})([0-9]{4})/', '$1-$2-$3', $request->input('tel'));
+
+            $addressNum = $request->input('addressNum');
+            $addressRoad = $request->input('addressRoad');
+            $addressDetail = $request->input('addressDetail');
+
+            $userData = [
+            'userIndex' => $userIndex,
+            'userPw' => $userPw,
+            'email' => $email,
+            'accumulated' => $accumulated,
+            'addressNum' => $addressNum,
+            'addressRoad' => $addressRoad,
+            'addressDetail' => $addressDetail,
+            'tel' => $tel,
+            'file' => $path,
+            'etc' => $etc
+            ];
+
+            $result = $userModel->userUpdate($userData);
+
+            if (isset($result)) {
+                $msg = '업데이트에 성공했습니다.';
+            } else {
+                throw new \Exception('업데이트에 실패했습니다.');
+            }
+
+        } catch (\Exception $e) {
+            $msg = $e->getMessage();
+        }
+
+        return response()->json(array('msg' => $msg, 'result' => $result));
     }
 }

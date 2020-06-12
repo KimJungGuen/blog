@@ -24,11 +24,12 @@ class NoticeBoard extends Model
   }
 
   //해당 인덱스 유저 조회 PK기준
-  public function getUserPw(int $userIndex)
+  public function getUserPw(int $userIndex, String $userPw)
   {
     $user = $this->withTrashed()
-                 ->where('index', $userIndex)
-                 ->value('user_pw');
+                 ->Where('index', $userIndex)
+                 ->Where('user_pw', $userPw)
+                 ->count();
 
     return $user;
   }
@@ -165,10 +166,10 @@ class NoticeBoard extends Model
                   ->searchFilterFirst($search)  //검색필터와 검색어 where절 첫번쨰 필드
                   ->searchfilterSecond($search)  //검색필터와 검색어 where절 두번쨰 필드
                   ->when($search['gender'] == 'M' , function($query, $search) { //유저 성별에 따른 조건 검색
-                    return $query->where('gender', 1); // 1 = 남
+                    return $query->where('gender', 'M'); // 1 = 남
                   })
                   ->when($search['gender'] == 'F', function($query, $search) {
-                    return $query->where('gender', 2); //  2 = 여
+                    return $query->where('gender', 'F'); //  2 = 여
                   })
                   ->searchDateFormat($search)
                   ->orderBy($search['sort'], $search['orderBy'])
