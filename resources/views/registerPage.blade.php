@@ -46,7 +46,7 @@
                             <td>성별</td>
                             <td>
                                 <select id="gender" name="gender">
-                                    <option selected>선택</option>
+                                    <option>선택</option>
                                     <option value="M">남</option>
                                     <option value="F">여</option>
                                 </select>
@@ -69,7 +69,7 @@
                             <td>
                                 <input type="text" id="email" name="email" maxlength="30" /> @
                                 <select id="emailDomain" name="emailDomain">
-                                    <option selected>선택</option>
+                                    <option>선택</option>
                                     <option value="naver.com">naver.com</option>
                                     <option value="gmail.com">gmail.com</option>
                                     <option value="daum.com">daum.com</option>
@@ -79,7 +79,7 @@
                         <tr>
                             <td>적립금</td>
                             <td>
-                                <input type="text" id="accumulated" name="accumulated" class="numberOnly text-right" maxlength="50" placeholder="0" onclick="accumlatedClear();"/>
+                                <input type="text" id="accumulated" name="accumulated" class="numberOnly text-right" maxlength="10" placeholder="0"/>
                             </td>
                         </tr>
                         <tr>
@@ -106,11 +106,11 @@
                         </tr>
                         <tr>
                             <td>파일 업로드</td>
-                            <td><input type="file" id="file" name="file" value="" Onchange="fileImg(this);" /><img id="preImg" src="#"  width="200" height="200"/></td>
+                            <td><input type="file" id="file" name="file" value="" Onchange="filePreView(this);" /><img id="preImg" src="#"  width="200" height="200"/></td>
                         </tr>
                         <tr>
                             <td>비고</td>
-                            <td><textarea rows="2" id="etc" name="etc" style="width:100%"></textarea></td>
+                            <td><textarea rows="2" id="etc" name="etc" style="width:100%" maxlength="300"></textarea></td>
                         </tr>
                         <tr>
                             <td colspan="2">
@@ -120,61 +120,69 @@
                     </tbody>
                 </table>
                 <button type="button" id="submitBtn" class="btn btn-primary" onclick="validate();">저장하기</button>
+                <button type="button" id="Btn" class="btn btn-primary" onclick="">다중등록</button>
             </form>
         </div>
 
         <script>
-            //id 필드 다시 수정시 id체크 초기화
+            /**
+             * @brief   필드 빈 값 확인
+             * @param   mixed value
+             * @return  boolean
+             */
             function valueCheck(value) {
-                return ((value == '') || (value == 0) || (value == undefined) || (value == '0') || (value == '선택'));
+                return (
+                    (value == '') 
+                    || (value == 0) 
+                    || (value == undefined) 
+                    || (value == '0') 
+                    || (value == '선택') 
+                    || (value == 'false')
+                );
             }
             
+            //@brief    아이디 중복확인 초기화
             function idCheckClear() {
-                  $('#idStatus').val(0);
-                  return false;
+                  $('#idStatus').val(false);
             }
 
-
-            //유저 파일 업로드시 미리보기
-            function fileImg(input) 
+            //@brief    유저 파일 업로드시 미리보기
+            function filePreView(input) 
             {
                 if (input.files && input.files[0]) {
-                    //파일을 읽기위해 fileEader API를 사용
                     var reader = new FileReader();
-
                     reader.readAsDataURL(input.files[0]);
-                    //read가 끝나면 onload 트리거 발생
+
                     reader.onload = function (e) {
-                    //result값은 base64로 인코딩된 데이터
                         $('#preImg').attr('src', e.target.result);
                     }
                 }
             }
 
-            //다음 주소 api
+            //@brief    다음 주소 찾기 api
             function addressModal() 
             {
                 new daum.Postcode({
                 oncomplete: function(data) {
-                    // 우편번호와 주소 정보를 해당 필드에 넣는다. 이떄 주소는 도로명만 넣어진다.
+                    // 우편번호와 주소 정보를 해당 필드에 넣는다.
                     document.getElementById('addressNum').value = data.zonecode;
                     document.getElementById('addressRoad').value = data.roadAddress;
                     // 커서를 상세주소 필드로 이동한다.
                     document.getElementById('addressDetail').focus();
                 }
                 }).open({
-                //팝업창 옵션으로 이름을 주어 중복으로 안켜지게 한다.
+                //중복으로 안켜지게 한다.
                     popupName : 'postCodePopup'
                 });
             }
 
-            //유저 id중복체크
+            //@brief    유저 아이디 중복 확인
             function userIdCheck()
             {
                 var userId = $('#userId').val();
-                var userIdSpe = userId.search(/[~!@#$%^&*()<>?]/ig);
-
-                if(userIdSpe < 0) {
+                var userIdSpecialCharacter = userId.search(/[~!@#$%^&*()<>?]/ig);
+                //아이디 특수문자 확인 및 아이디 값 전송 
+                if(userIdSpecialCharacter < 0) {
                     $.ajax({
                         url:'/userIdCheck',
                         type:'post',
@@ -197,86 +205,98 @@
                 }
             }
 
-            //데이터 유효성 판단
+            //@brief    데이터 유효성 판단 및 전송
             function validate()
             {
+                //특수문자, 문자, 숫자 정규식 지정
                 var specialCharacter = /[~!@#$%^&*()<>?]/g;
                 var character = /[a-z]/ig;
                 var number = /[0-9]/g;
 
+                //search() 검사하는 값이 없을경우 -1을 반환
+                //비밀번호, 비밀번호 확인 숫자, 문자, 특수문자 확인
                 var pw = $('#userPw').val();
                 var pwCheck = $('#userPwCheck').val();
-
-                //search() 검사하는 값이 없을경우 -1을 반환
                 var pwNumberCheck = pw.search(number);
                 var pwCharacterCheck = pw.search(character);
                 var pwSpecialCharacterCheck = pw.search(specialCharacter);
 
-                //유저 이름 특문 체크
+                //이름 숫자, 특수문자 확인
                 var name = $('#name').val();
-                var nameSpecialCharacterCheck = name.search(specialCharacter);
                 var nameNumberCheck = name.search(number);
+                var nameSpecialCharacterCheck = name.search(specialCharacter);
+                
+                var userId = $('#userId').val();
+                var userIdHangulCharacterCheck = userId.search(/[ㄱ-ㅎ]/g);
 
-                //email 특문체크
+                //이메일 특수문자 확인
                 var email = $('#email').val();
                 var emailSpecialCharacterCheck = email.search(specialCharacter);
 
+                //우편번호 문자, 특수문자 확인
                 var addressNum = $('#addressNum').val();
-                var addressNumberCheck = addressNum.search(specialCharacter);
-                var addressCharacterCheck = addressNum.search(character);
+                var addressNumCharacterCheck = addressNum.search(character);
+                var addressNumSpecialCharacterCheck = addressNum.search(specialCharacter);
 
+                //도로명 주소 특수문자 확인
                 var addressRoad = $('#addressRoad').val();
-                var addressRoadSpecialCharacterCheck = addressRoad.search(/[~!@$%^&*?]/g);
+                var addressRoadSpecialCharacterCheck = addressRoad.search(/[@$%^&*?]/g);
 
+                //상세주소 특수문자 확인
                 var addressDetail = $('#addressDetail').val();
-                var addressDetailSpecialCharacterCheck = addressDetail.search(/[~!@$%^&*?]/g);
+                var addressDetailSpecialCharacterCheck = addressDetail.search(/[@$%^&*?]/g);
 
                 var age = $('#age').val();
-                var ageCharacterCheck = age.search(character);
-                var ageSpecialCharacterCheck = age.search(specialCharacter);
+                var tel = $('#tel').val();
 
-                //이름 빈값 체크
+                //이름 빈값 확인
                 if (name.length < 2) 
                 {
                     alert('이름을 2자 이상 입력해주세요');
                     return false;
                 } 
 
-                //이름 특문 체크
+                //이름 특수문자 확인
                 if (nameNumberCheck > -1 || nameSpecialCharacterCheck > -1) {
                     alert('정상적인 이름을 입력해주세요');
                     return false;
                 } 
 
-                //아이디 빈값체크 체크
-                if (valueCheck($('#userId').val())) {
+                //아이디 빈 값 확인
+                if (valueCheck(userId)) {
                     alert('아이디를 입력해주세요');
                     return false;
                 } 
 
-                //아이디 중복확인
+                if (userIdHangulCharacterCheck > -1) {
+                    alert('유저아이디는 숫자와 영어만 가능합니다.');
+                    return false;
+                }
+
+                //아이디 중복 확인
                 if (valueCheck($('#idStatus').val())) {
                     alert('아이디 중복확인을 해주세요');
                     return false;
                 } 
 
-                //비밀번호 빈값 체크
+                //비밀번호 빈 값 확인
                 if (valueCheck(pw)) {
                     alert('비밀번호를 입력해주세요');
                     return false;
                 } 
 
-                //비밀번호 확인 빈값 체크
+                //비밀번호 확인 빈 값 확인
                 if (valueCheck(pwCheck)) {
                     alert('비밀번호 확인을 입력해주세요');
                     return false;
                 } 
 
-
                 //비밀번호 자릿수 및 공백, 영어 숫자 특문 혼용 확인, 일치 확인
-                if (pw !== pwCheck && valueCheck(pw) && valueCheck(pwCheck)) {
+                if (pw !== pwCheck) {
                     alert('비밀번호가 일치하지 않습니다.');
                     return false;
+                } else if(pw.search(/\s/) != -1) {
+                    alert('비밀번호는 공백없이 입력해주세요.');
                 } else if (pw.length < 8 || pw.length > 20) {
                     alert('비밀번호는 8자리 ~ 20자리 이내로 입력해주세요.');
                     return false;
@@ -285,13 +305,13 @@
                     return false;
                 } 
 
-                //성별체크 확인
+                //성별 확인
                 if(valueCheck($('#gender').val())) {
                     alert('성별을 선택해주세요');
                     return false;
                 } 
 
-                //나이 빈값확인 및 정상값 체크
+                //나이 빈 값 확인 및 범위 확인
                 if(valueCheck(age)) {
                     alert('나이를 입력해주세요');
                     return false;
@@ -299,77 +319,65 @@
                     alert('나이를 재대로 입력해주세요');
                     return false;
                 } 
-
-                //나이 특문 및 문자 검사
-                if (ageCharacterCheck > -1 || ageSpecialCharacterCheck > -1) {
-                    alert('나이는 숫자만 입력해주세요.');
-                    return false;
-                }
-
-                //전화번호 빈값 체크 및 전화번소 자릿수 체크
-                if (Number($('#tel').val().length) <= 0) {
+   
+                //전화번호 빈값 확인 및 전화번소 자릿수 확인
+                if (Number(tel.length) <= 0) {
                     alert('전화번호를 입력해주세요');
                     return false;
-                } else if (Number($('#tel').val().length) != 11) {
+                } else if (Number(tel.length) < 8 || Number(tel.length) > 11) {
                     alert('전화번호를 재대로 입력해주세요');
                     return false;
                 } 
 
-                //이메일 빈값 체크
+                //이메일 빈 값 확인
                 if(valueCheck(email)) {
                     alert('이메일을 입력해주세요');
                     return false;
                 } 
 
-                //이메일 도메인 체크
+                //이메일 도메인 확인
                 if (valueCheck($('#emailDomain').val())) {
                     alert('이메일 도메인을 선택해주세요.');
                     return false;
                 }
 
-                //이메일 특문 및 공백 체크
+                //이메일 특수문자 및 공백 확인
                 if (emailSpecialCharacterCheck > -1) {
                     alert('정상적인 email을 입력해주세요');
                     return false; 
                 } 
 
-                //적립금 빈값 체크
+                //적립금 빈 값 확인
                 if (valueCheck($('#accumulated').val()) || $('#accumulated').val() <= 0) {
                     alert('적립금 액수를 입력해주세요.');
                     return false;
                 } 
                 
-                // 결혼 상태 체크
+                // 결혼 상태 확인
                 if (valueCheck($('input[name=marry]:checked').val())) {
                       alert('결혼 상태를 체크해주세요')
                       return false;
                 }
 
-                //주소 빈값 체크
-                if(!addressNum) {
+                //주소 빈 값 확인
+                if(valueCheck(addressNum)) {
                     alert('우편번호를 입력해주세요');
                     return false;
-                } else if(!addressRoad) {
+                } else if(valueCheck(addressRoad)) {
                     alert('도로명주소를 입력해주세요');
-                    return false;
-                } else if (!addressDetail){
-                    alert('상세주소를 입력해주세요');
                     return false;
                 }
 
-                //주소 특문 체크
-                if (addressNumberCheck > -1 || addressCharacterCheck > -1) {
+                //주소 특수문자 확인
+                if (addressNumCharacterCheck > -1 || addressNumSpecialCharacterCheck > -1) {
                     alert('정상적인 우편번호를 입력해주세요');
                     return false;
                 } else  if (addressRoadSpecialCharacterCheck > -1) {
                     alert('정상적인 도로명주소를 입력해주세요');
                     return false;
-                } else if (addressDetailSpecialCharacterCheck > -1) {
-                    alert('정상적인 상세주소를 입력해주세요');
-                    return false;
-                } 
+                }
 
-                //파일 유무 체크
+                //파일 유무 확인
                 if($('#file').val() != '') {
                     //파일의 이름중에서 확장자만을 추출한다.
                     var ext = $('#file').val().split('.').pop().toLowerCase();
@@ -380,12 +388,12 @@
                     }
                 } 
 
-                if (!$('#agree:checked').val()) {
+                //개인정보수집동의 확인
+                if (valueCheck($('#agree:checked').val())) {
                     alert('개인정보수집동의 박스를 체크해주세요.');
                     return false;
                 }
 
-                //ajax file전송을 위해서 FormData를 활용 *업데이트 부분 주석과 동일
                 var formData =new FormData($('#userCreate')[0]);
                 $.ajax({
                     url:'/users',
@@ -413,7 +421,7 @@
 
             $(document).ready(function()
             {
-                //숫자입력 필드에 문자열 입력시 공백으로 바꿈
+                //@brief    숫자필드에 문자입력시 공백
                 $('.numberOnly').keyup(function() 
                 {
                     $(this).val($(this).val().replace(/[^0-9]/g,''));

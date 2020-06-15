@@ -35,7 +35,7 @@ class UserRequest extends FormRequest
                     'age' => 'required|integer|max:99',
                     'userPw' => 'required|same:userPwCheck|between:5,20',
                     'userPwCheck' => 'required|between:5,20',
-                    'tel' => 'required|digits:11|regex:/0[0-9]0[0-9]{8}$/',
+                    'tel' => 'required|digits_between:8,11',
                     'gender' => 'required|alpha|max:1',
                     'accumulated' => 'required|integer|min:0',
                     'addressNum' => 'required|max:5',
@@ -50,7 +50,7 @@ class UserRequest extends FormRequest
             case 'update':
                 return [
                     'userPw' => 'same:userPwCheck',
-                    'tel' => 'required|digits:11|regex:/0[0-9]0[0-9]{8}$/',
+                    'tel' => 'required|digits_between:8,11',
                     'accumulated' => 'required|integer|min:0',
                     'addressNum' => 'required|max:5',
                     'addressRoad' => 'required',
@@ -67,7 +67,7 @@ class UserRequest extends FormRequest
             //유저 idCheck
             case 'userIdCheck':
                 return [
-                    'userId' => 'required|between:5,20|unique:user,user_id'
+                    'userId' => 'required|between:5,20|unique:user,user_id|not_regex:/[ㄱ-ㅎ]/'
                 ];
             
             //유저 pwCheck
@@ -82,7 +82,7 @@ class UserRequest extends FormRequest
     {
         switch (Route::currentRouteName())
         {
-            //유저 등록 유효성 검사 메시지
+            //유저 등록
             case 'register':
                 return [
                     'name.required' => '이름을 입력해주세요.',
@@ -100,8 +100,7 @@ class UserRequest extends FormRequest
                     'userPwCheck.required' => '비밀번호 확인을 입력해주세요.',
                     'userPwCheck.between' => '비밀번호는 8자에서 20자 사이로 입력해주세요.',
                     'tel.required' => '전화번호를 입력해주세요.',
-                    'tel.digits' => '전화번호는 11자리와 숫자만 입력해주세요.',
-                    'tel.regex' => '정상적인 전화번호를 입력해주세요.',
+                    'tel.digits_between' => '전화번호는 11자리와 숫자만 입력해주세요.',
                     'gender.required' => '성별을 선택해주세요.',
                     'gender.alpha' => '비정상적인 성별 값입니다.',
                     'gender.max' => '비정상적인 성별 값입니다.',
@@ -120,13 +119,12 @@ class UserRequest extends FormRequest
                     'agree.required' => '개인정보 이용 동의를 해주세요.'
                 ];
         
-            //유저 업데이트 유효성 검사 메시지
+            //유저 업데이트
             case 'update':
                 return [
                     'userPw.same' => '비밀번호와 비밀번호 확인이 일치하지 않습니다.',
                     'tel.required' => '전화번호를 입력해주세요.',
-                    'tel.digits' => '전화번호는 11자리와 숫자만 입력해주세요.',
-                    'tel.regex' => '정상적인 전화번호를 입력해주세요.',
+                    'tel.digits_between' => '전화번호는 11자리와 숫자만 입력해주세요.',
                     'accumulated.required' => '적립금을 입력해주세요.',
                     'accumulated.integer' => '적립금은 숫자만 입력해주세요',
                     'accumulated.min' => '적립금은 0원 이하로 할 수 없습니다.',

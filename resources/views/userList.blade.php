@@ -44,9 +44,9 @@
                         <tr>
                             <td class="table-primary">상태</td>
                             <td>
-                                <input id="searchUserAll" name="searchUserAll" value="all" onclick="statusCheckBox();" type="checkbox" @if ($searchData['userStatus'] == 'all') checked @elseif (empty($searchData['userStatus'])) checked @endif> 모든계정
-                                <input id="searchUserActive" name="searchUserActive" value="active" onclick="statusCheckBox();" type="checkbox" @if ($searchData['userStatus'] == 'active') checked @endif> 사용계정
-                                <input id="searchUserSleep" name="searchUserSleep" value="sleep" onclick="statusCheckBox();" type="checkbox" @if ($searchData['userStatus'] == 'sleep') checked @endif> 휴먼계정
+                                <input id="searchUserAll" name="searchUserAll" value="all" onclick="statusCheckBox();" type="checkbox" @if ($searchData['userStatus'] == 'all') checked @endif> 모든계정
+                                <input id="searchUserActive" name="searchUserActive" value="active" onclick="statusCheckBox();" type="checkbox" @if ($searchData['userStatus'] == 'active') checked @elseif ($searchData['userStatus'] == 'all') checked @endif> 사용계정
+                                <input id="searchUserSleep" name="searchUserSleep" value="sleep" onclick="statusCheckBox();" type="checkbox" @if ($searchData['userStatus'] == 'sleep') checked @elseif ($searchData['userStatus'] == 'all') checked @endif> 휴먼계정
                             </td>
                         </tr>
                         <tr>
@@ -67,10 +67,10 @@
                         <tr>
                         <td class="table-primary">정렬</td>
                         <td>
-                            <select id="sort" name="sort" onchange="changePage();">
-                                <option value="index" @if ($searchData['sort'] == 'index') selected @endif>번호</option>
-                                <option value="accumulated" @if ($searchData['sort'] == 'accumulated') selected @endif>적립금</option>
-                                <option value="age" @if ($searchData['sort'] == 'age') selected @endif> 나이</option>
+                            <select id="sortIndex" name="sortIndex" onchange="changePage();">
+                                <option value="index" @if ($searchData['sortIndex'] == 'index') selected @endif>번호</option>
+                                <option value="accumulated" @if ($searchData['sortIndex'] == 'accumulated') selected @endif>적립금</option>
+                                <option value="age" @if ($searchData['sortIndex'] == 'age') selected @endif> 나이</option>
                             </select>
                                 <select id="orderBy" name="orderBy" onchange="changePage();">
                                 <option value="asc" @if ($searchData['orderBy'] == 'asc') selected @endif>오름차순</option>
@@ -94,7 +94,7 @@
             <input type="button" class="btn btn-primary" style="position:absolute; top:40%; left:87%; height:3.5%;" value="유저등록" onclick="location.href='/user'"/>
             <input type="button" class="btn btn-danger" style="position:absolute; top:40%; left: 92%; height: 3.5%;" value="유저탈퇴" onclick="userDelete()"/>
 
-            <select style="position:absolute; height:3.3%; top:40%; left:98%;" id="pageLimit" name="pageLimit" onchange="$('#searchPageLimit').val(this.value); changePage();">
+            <select style="position:absolute; height:3.3%; top:40%; left:98%;" id="pageLimit" name="pageLimit" onchange="changePage();">
                 @for($i = 1 ; $i <= 10 ; $i++)
                     @if($i == $searchData['searchPageLimit'])
                         <option value={{$i}} selected>{{ $i }}</option>
@@ -191,7 +191,7 @@
                         <td></td>
                     </tr>
                     <tr>
-                        <td class="table-primary" rowspan="2">연령별</td>
+                        <td class="table-primary" rowspan="2">연령별</td> 
                         <td>19세 이하</td>
                         <td>20~30 대</td>
                         <td>40~50 대</td>
@@ -219,26 +219,10 @@
                 </tbody>
             </table>
         </div>
-        @if($errors->any())
-            <input type="hidden" id="error" value="{{$errors->first('searchDateFirst')}}" />
-        @endif
-
         @csrf
         <script>
 
-            function empty(value) {
-                return ((value == '') || (value == null) || (value == 0) || (typeof value == 'undefined') || (value == '0')) ? true : false;
-            }
-
-            //검색 시작일이 종료일보다 빠를경우
-            (function errorMessage() {
-                var error = $('#error').val();
-                if(error != null) {
-                    alert(error);
-                }
-            })()
-
-            //검색 폼의 상태 체크박스 상태 컨트롤
+            //@brief    유저 상태 체크박스 조작
             function statusCheckBox() {
                 var $userAll = $('#searchUserAll');
                 var $userActive = $('#searchUserActive');
@@ -247,7 +231,6 @@
                 if (event.target.id != 'searchUserAll') {
                     $userAll.prop('checked', false);
                 }
-
                 //사용 또는 휴면 버튼과 모든계정 버튼을 누를경우 사용 또는 휴면 버튼 비활성화 
                 if ($userActive.prop('checked') && $userAll.prop('checked')) {
                     $userActive.prop('checked', false);
@@ -255,14 +238,12 @@
                 if ($userSleep.prop('checked') &&  $userAll.prop('checked')) {
                     $userSleep.prop('checked', false);
                 }
-
                 //사용 버튼과 휴면 버튼을 둘다 누를 경우 둘다 비활성화 모든 계정 버튼 활성화 
                 if ($userActive.prop('checked') && $userSleep.prop('checked')) {
                     $userAll.prop('checked', true);
                     $userActive.prop('checked', true);
                     $userSleep.prop('checked', true);
                 }
-
                 //모든 버튼 클릭시 전부 살아있을경우 비활성화
                 if (event.target.id == 'searchUserAll' && $userActive.prop('checked') && $userSleep.prop('checked') && $userAll.prop('checked')) {
                     $userAll.prop('checked', false);
@@ -274,11 +255,11 @@
                 }
             }
 
-
-            //유저 비밀번호 체크 ajax
+            //@brief    유저 비밀번호 확인
+            //@param    int index : 클릭한 유저의 고유번호
             function userPwCheck(index) {
                 var userPw = prompt('비밀번호를 입력해주세요');
-
+                //유저 비밀번호 입력했을 때 전송
                 if (userPw) {
                     var userIndex = index;
                     $.ajax({
@@ -294,8 +275,10 @@
                             if (result.pwCheck) {
                                 alert('비밀번호가 일치합니다.');
                                 $(location).attr('href', '/userUpdate/' + userIndex);
+                                ret
                             } else {
                                 alert('비밀번호가 틀렸습니다.');
+
                             }
                         },
                         error:function(request,sts,error){
@@ -308,17 +291,19 @@
                 }
             }
 
-            //유저 조회
+            //@brief    유저 검색
             function searchUsers() {
-                var specialCharacter = /[~!@#$%^&*()<>?]/g;
-                //첫번쨰 검색어 필드 특문체크
+            var specialCharacter = /[~!@#$%^&*()_+-=\[\]\\{}\|;:'"<>/?]/g;
+                
+                //첫 번쨰 검색어 특수문자 확인
                 var searchFirstWord = $('#searchFirstWord').val();
                 var textCheckFirst = searchFirstWord.search(specialCharacter);
 
-                //두번쨰 검색어 필트 특문체크
+                //두 번째 검색어 특수문자 확인 
                 var searchSecondWord = $('#searchSecondWord').val();
                 var textCheckSecond = searchSecondWord.search(specialCharacter);
 
+                //첫 번째, 두 번째 필터
                 var filterFirst = $('#filterFirst option:selected').val();
                 var filterSecond = $('#filterSecond option:selected').val();
 
@@ -326,39 +311,43 @@
                 var searchDateAfter = $('#searchDateFirst').val();
                 var searchDateBefore = $('#searchDateSecond').val();
 
+                //유저 상태 체크박스
                 var userAll = $('#searchUserAll').prop('checked');
                 var userActive = $('#searchUserActive').prop('checked');
                 var userSleep = $('#searchUserSleep').prop('checked');
-
                 
-                if (empty(filterFirst) && searchFirstWord) {
+                //필터와 검색어 확인
+                if (filterFirst == false && searchFirstWord) {
                     alert('첫번째 검색 필터를 선택해주세요');
-                } else if (filterFirst && empty(searchFirstWord)) {
-                    alert('첫번째 검색어를 입력해주세요.')
+                    return false;
+                } else if (filterFirst && searchFirstWord == '') {
+                    alert('첫번째 검색어를 입력해주세요.');
+                    return false;
                 }
 
-                if (empty(filterSecond) && searchSecondWord) {
+                if (filterSecond == false && searchSecondWord) {
                     alert('두번쨰 검색 필터를 선택해주세요');
-                } else if (filterSecond && empty(searchSecondWord)) {
-                    alert('두번쨰 검색어를 입력해주세요.')
+                    return false;
+                } else if (filterSecond && searchSecondWord == '') {
+                    alert('두번쨰 검색어를 입력해주세요.');
+                    return false;
                 }
 
-                //체크박스를 모두 해제하고 보낼경우
+                //유저 상태 체크 박스 확인 
                 if (userAll == false && userActive == false && userSleep == false) {
                     alert('검색할 계정 상태를 최소 하나는 골라주세요.');
                     return false;
                 }
 
-                //시작일이나 종료일이 없을경우
+                //시작일이나 종료일 확인
                 if (searchDateAfter == '' || searchDateBefore == '') {
                     alert('시작일이나 종료일이 안정했졌습니다.');
                     return false;
                 }
 
-                //날짜연산을 위해서 '-' 제거
+                //시작일 종료일 연산
                 var dateAfter = searchDateAfter.split('-');
                 var dateBefore = searchDateBefore.split('-');
-
                 var afterYear = dateAfter[0];
                 var beforeYear = dateBefore[0];
                 var afterMonth = dateAfter[1];
@@ -366,11 +355,9 @@
                 var afterDay = dateAfter[2];
                 var beforeDay = dateBefore[2];
                 var dateAlert = function() {alert('시작일을 종료일보다 앞 선 날짜로 설정해주세요.')};
-
                 var yearCheck = (beforeYear - afterYear < 0) ? false : true;
                 var monthCheck = (beforeMonth - afterMonth < 0) ? false : true;
                 var dayCheck = (beforeDay - afterDay < 0) ? false : true;
-
                 if (yearCheck) {
                     if (monthCheck) {
                         if (dayCheck == false && beforeMonth - afterMonth == 0 && beforeYear - afterYear == 0) {
@@ -386,26 +373,23 @@
                     return false;
                 }
 
-                //기존 pageLimit은 form이달라 값에 포함이 안되어 따로 searchForm에 할당
+                //pageLimit 값 전송
                 $('#searchPageLimit').attr('value',$('#pageLimit option:selected').val());
-
                 if (textCheckFirst == -1 && textCheckSecond == -1) {
                    $('#searchForm').submit();
                 } else {
-                alert('검색어를 재대로 입력해주세요.');
+                    alert('검색어를 재대로 입력해주세요.');
                     return false;
                 }
             }
 
-            //유저조회 조건 초기화
+            //@brief    유저 조회 조건 초기화
             function searchDefault() {
                 var today = new Date();
-
-                //년도 xxxx형식
+                
                 var year = today.getFullYear();
 
-                //월 0~11
-                //첫번째 날짜 비교 필터의 월 
+                //시작일 월 설정
                 var monthAfter = (today.getMonth()+1 < 10) ? '0' + (today.getMonth()) : (today.getMonth()+1);
 
                 //1월일 경우 작년으로 바꾸고 12월로 해준다.
@@ -414,60 +398,69 @@
                     monthAfter = today.getMonth()+12;
                 }
 
-                //두번째 날짜 비교 필터의 월
+                //종료일 월 설정
                 var monthBefore = (today.getMonth()+1 < 10) ? '0' + (today.getMonth()+1) : (today.getMonth()+1);
-
-                //일
                 var day = (today.getDate() < 10) ? '0' + today.getDate() : today.getDate();
 
-                //각자 구한 년 월 일 을 합침
+                //시작일 종료일
                 var dateDefaultAfter = year + '-' + monthAfter + '-' + day;
                 var dateDefaultBefore = year + '-' + monthBefore + '-' + day;
-
-                //radio
+                
+                //radio 성별
                 $('#gender').prop('checked', true);
-                //text
+
+                //text 검색어
                 $('#searchFirstWord').val('');
                 $('#searchSecondWord').val('');
-                //date
+
+                //date 시작일, 종료일
                 $('#searchDateFirst').val(dateDefaultAfter);
                 $('#searchDateSecond').val(dateDefaultBefore);
-                //check box
-                $('#searchUserAll').prop('checked', true);
-                $('#searchUserActive').prop('checked', false);;
+
+                //check box 유저 상태
+                $('#searchUserAll').prop('checked', false);
+                $('#searchUserActive').prop('checked', true);;
                 $('#searchUserSleep').prop('checked', false);;
-                //serlect box
+
+                //serlect box 검색 필터, 정렬 필터
                 $('.basicFilter').attr('value', '');
                 $('.basicFilter').text('선택');
                 $('#filterFirst').val('');
                 $('#filterSecond').val('');
-                $('#sort').val('index');
+                $('#sortIndex').val('index');
                 $('#orderBy').val('asc');
             }
 
-            //users페이지와 userSearch페이지 orderBy 및 pageLimit 재정렬
+            //@brief    페이지 수정
             function changePage() {
-                var formData = $('.form').serialize();
-                var getValue = $(location).attr('href').split('&');
-                var searchPageLimit = $('#searchPageLimit').val();
-                var sort = $('#sort option:selected').val();
+                var urlQueryString = $(location).attr('href').split('?').pop();
+                var getValue = urlQueryString.split('&');
+                var searchQueryString = '';
+
+                for (var index = 1; index <= getValue.length-3; index++) {
+                    console.log(getValue[index]);
+                    searchQueryString += '&' + getValue[index];
+                }
+
+                var sortIndex = $('#sortIndex option:selected').val();
                 var orderBy = $('#orderBy option:selected').val();
-                var queryString = 'searchPageLimit=' + searchPageLimit + '&sort=' + sort + '&orderBy=' + orderBy;
+                $('#searchPageLimit').attr('value',$('#pageLimit option:selected').val());
+                var queryString = 'searchPageLimit=' + $('#searchPageLimit').val() + '&sortIndex=' + sortIndex + '&orderBy=' + orderBy;
+                searchQueryString = 'searchPageLimit=' + $('#searchPageLimit').val() + searchQueryString + '&sortIndex=' + sortIndex + '&orderBy=' + orderBy;
 
-
-                if (getValue.length == 11) {
-                    $(location).attr('href', '/users?' + formData);
+                //현재 queryString에 따라 전송 데이터 구분 
+                if (getValue.length > 9) {
+                    $(location).attr('href', '/users?' + searchQueryString );
                 } else {
                     $(location).attr('href', '/users?' + queryString);
                 }
             }
 
-            //유저 삭제
+            //@brief    유저 삭제
             function userDelete() {
                 var deleteCheck = confirm('선택된 유저를 삭제하시겠습니까?');
                 var userIndex = {};
                 var indexValueCheck = false;
-
                 //삭제 확인창에서 확인을 누른경우
                 if (deleteCheck) { 
                     //체크된 딜리트 박스들의 값들을 each반복문을 돌면서 배열에 삽입 ex)foreach
