@@ -4,7 +4,9 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Http\Request;
 use Route;
+
 
 class UserRequest extends FormRequest
 {
@@ -23,25 +25,28 @@ class UserRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(Request $request)
     {
         switch (Route::currentRouteName())
         {
+
+            //한글 유니코드 Hangul Compatibility Jamo 참조 https://codepoints.net/hangul_compatibility_jamo
+            //laravel 한글 정규 표현식 문제 찾아보기
             //유저 등록
             case 'register':
                 return [
-                    'name' => 'required|alpha|between:2,5',
-                    'userId' => 'required|between:5,20|unique:user,user_id',
+                    'name' => 'required|alpha|between:2,5|not_regex:/[\\x{3131}-\\x{318e}]/u',
+                    'userId' => 'required|alpha_num|between:5,20|unique:user,user_id|not_regex:/[\\x{3131}-\\x{318e}]/u',
                     'age' => 'required|integer|max:99',
                     'userPw' => 'required|same:userPwCheck|between:5,20',
                     'userPwCheck' => 'required|between:5,20',
                     'tel' => 'required|digits_between:8,11',
                     'gender' => 'required|alpha|max:1',
-                    'accumulated' => 'required|integer|min:0',
-                    'addressNum' => 'required|max:5',
-                    'addressRoad' => 'required',
+                    'accumulated' => 'required|integer|between:1,2100000000|not_regex:/[\\x{3131}-\\x{318e}]/u',
+                    'addressNum' => 'required|max:5|regex:/[0-9]/',
+                    'addressRoad' => 'required|not_regex:/[\\x{3131}-\\x{318e}]/u',
                     'marry' => 'required|alpha|max:1',
-                    'email' => 'required|alpha_num',
+                    'email' => 'required|alpha_num:max:20',
                     'emailDomain' => [Rule::in(['naver.com', 'daum.com', 'gmail.com'])],
                     'agree' => 'required'
                 ];
@@ -88,6 +93,7 @@ class UserRequest extends FormRequest
                     'name.required' => '이름을 입력해주세요.',
                     'name.alpha' => '이름엔 문자만 입력해주세요.',
                     'name.between' => '2자에서 5자 사이로 입력해주세요.',
+                    'name.not_regex' => '이름을 재대로 입력해주세요',
                     'userId.required' => 'id를 입력해주세요.',
                     'userId.unique' => 'id가 중복되었습니다.',
                     'userId.between' => 'Id를 5자에서 20자 사이로 입력해주세요.',
