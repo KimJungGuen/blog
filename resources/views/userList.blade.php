@@ -275,7 +275,6 @@
                             if (result.pwCheck) {
                                 alert('비밀번호가 일치합니다.');
                                 $(location).attr('href', '/userUpdate/' + userIndex);
-                                ret
                             } else {
                                 alert('비밀번호가 틀렸습니다.');
 

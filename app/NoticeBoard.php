@@ -43,7 +43,7 @@ class NoticeBoard extends Model
                            ->Where('index', $userIndex)
                            ->Where('user_pw', $userPw)
                            ->count();
-
+        
         return $checkValue;
     }
 

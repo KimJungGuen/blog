@@ -162,12 +162,12 @@ class UserController extends Controller
         $userModel = new Noticeboard();
 
         $userPw = md5($request->input('userPw'));
-
+     
         //유저 비밀번호 확인
         $result = $userModel->userPwCheck($userIndex, $userPw);
-
+        
         //비밀번호가 맞을 경우 세션 생성
-        if (isset($result)) {
+        if ($result) {
             $pwCheck = true;
             $request->session()->put('userIndex', $userIndex);
         } else {
@@ -286,6 +286,12 @@ class UserController extends Controller
             $fileExt = $request->allFiles();
             $inputUserPw = $request->input('userPw');
             $inputUserPwCheck = $request->input('userPwCheck');
+            $inputUserPwSpecialCharacter = preg_match('/[`~!@#$%^&\*\(\)_=\+\[\]\{\};:\'"<>,\.\/\?\|\\\-]/', $inputUserPw);
+            $inputUserPwCharacter = preg_match('/[a-z]/i', $inputUserPw);
+            $inputUserPwNumber = preg_match('/[0-9]/', $inputUserPw);
+            
+
+            
 
             //입력된 유저의 비밀번호가 없을 경우 기존 비밀번호 사용
             if (is_null($inputUserPw)) {
@@ -297,6 +303,8 @@ class UserController extends Controller
                     throw new \Exception('비밀번호는 5자에서 20자 사이로 입력해주세요.');
                 } else if ($inputUserPw != $inputUserPwCheck) {
                     throw new \Exception('비밀번호와 비밀번호 확인이 일치하지않습니다.');
+                } else if (empty($inputUserPwSpecialCharacter) || empty($inputUserPwCharacter) || empty($inputUserPwNumber)) {
+                    throw new \Exception('비밀번호는 영문, 숫자, 특수문자 혼용으로 입력해주세요.');
                 }
 
                 $userPw = md5($inputUserPw);

@@ -124,9 +124,10 @@
             function update(){
 
                 //특수문자, 문자, 숫자 정규식 지정
-                var specialCharacter = /[~!@#$%^&*()<>?]/g;
+                var specialCharacter = /[`~!@#$%^&\*\(\)_=\+\{\}\[\]\\\|\?;:'"<>,\.\s\-]/g;
                 var character = /[a-z]/ig;
                 var number = /[0-9]/g;
+                var hangul = /[ㄱ-ㅎㅏ-ㅣ]/;
 
                 //비밀번호, 비밀번호 확인 숫자, 문자, 특수문자 확인
                 var pw = $('#userPw').val();
@@ -135,22 +136,42 @@
                 var pwCharacterCheck = pw.search(character);
                 var pwSpecialCharacterCheck = pw.search(specialCharacter);
 
+                //전화번호
+                var tel = $('#tel').val();
+                var telCharacterCheck = tel.search(character);
+                var telSpecialCharacterCheck = tel.search(specialCharacter);
+                var telHangulCharacterCheck = tel.search(hangul);
+
                 //이메일 특수문자 확인
                 var email = $('#email').val();
+                var emailCharacterCheck = email.search(character);
                 var emailSpecialCharacterCheck = email.search(specialCharacter);
+                var emailHangulCharacterCheck = email.search(hangul);
+
+                //적립금
+                var accumulated = $('#accumulated').val();
+                var accumulatedCharacterCheck = accumulated.search(character);
+                var accumulatedSpecialCharacterCheck = accumulated.search(specialCharacter);
+                var accumulatedHangulCharacterCheck = accumulated.search(hangul);
 
                 //우편번호 문자, 특수문자 확인
                 var addressNum = $('#addressNum').val();
                 var addressNumCharacterCheck = addressNum.search(character);
                 var addressNumSpecialCharacterCheck = addressNum.search(specialCharacter);
+                var addressNumHangulCharacterCheck = addressNum.search(hangul);
 
                 //도로명 주소 특수문자 확인
                 var addressRoad = $('#addressRoad').val();
-                var addressRoadSpecialCharacterCheck = addressRoad.search(/[@$%^&*?]/g);
+                var addressRoadSpecialCharacterCheck = addressRoad.search(/[`~!@#$%^&\*_\+=;:'"\{\}<>\?\\\|]/g);
+                var addressRoadHangulCharacterCheck = addressRoad.search(hangul);
 
                 //상세주소 특수문자 확인
                 var addressDetail = $('#addressDetail').val();
-                var addressDetailSpecialCharacterCheck = addressDetail.search(/[@$%^&*?]/g);
+                var addressDetailSpecialCharacterCheck = addressDetail.search(/[`~!@#$%^&\+=;:'"\{\}\?\\\|]/g);
+                var addressDetailHangulCharacterCheck = addressDetail.search(hangul);
+
+                var emailDomain = $('#emailDomain').val();
+                var file = $('#file').val();
                 
                 if (pw != '' || pwCheck != '') {
                     //비밀번호 자릿수 및 공백, 영어 숫자 특문 혼용 확인, 일치 확인
@@ -170,13 +191,16 @@
                 }
 
                 //전화번호 빈값 및 자릿수 확인
-                if (Number($('#tel').val().length) <= 0) {
+                if (tel.length <= 0) {
                     alert('전화번호를 입력해주세요');
                     return false;
-                } else if (Number($('#tel').val().length) < 8 || Number($('#tel').val().length) > 11) {
+                } else if (tel.length < 8 || tel.length> 11) {
                     alert('전화번호를 재대로 입력해주세요');
                     return false;
-                } 
+                } else if (telCharacterCheck > -1 || telSpecialCharacterCheck > -1 || telHangulCharacterCheck > -1) {
+                    alert('전화번호는 숫자만 입력해주세요');
+                    return false;
+                }
 
                 //이메일 빈값 확인
                 if(!email) {
@@ -185,44 +209,56 @@
                 } 
 
                 //이메일 도메인 확인
-                if ($('#emailDomain').val() == '선택') {
+                if (emailDomain == '선택') {
                     alert('이메일 도메인을 선택해주세요.');
                     return false;
                 }
 
                 //이메일 특문 및 공백 확인
-                if (emailSpecialCharacterCheck > -1 || email.search(/\s/) != -1) {
+                if (emailSpecialCharacterCheck > -1 || emailHangulCharacterCheck > -1 || emailCharacterCheck == -1 ) {
                     alert('정상적인 email을 입력해주세요');
                     return false; 
                 } 
 
                 //적립금 빈값 확인
-                if (!$('#accumulated').val()) {
+                if (!accumulated) {
                     alert('적립금 액수를 입력해주세요.');
                     return false;
-                } 
-
-                //주소 빈값 확인
-                if(!addressNum) {
-                    alert('우편번호를 입력해주세요');
+                } else if (accumulatedCharacterCheck > -1 || accumulatedSpecialCharacterCheck > -1 || accumulatedHangulCharacterCheck > -1) {
+                    alert('적립금은 숫자만 입력해주세요');
                     return false;
-                } else if(!addressRoad) {
-                    alert('도로명주소를 입력해주세요');
+                } else if (accumulated > 2100000000) {
+                    alert('적립금은 21억 이하로 입력해주세요');
                     return false;
                 }
 
+                //주소 빈값 확인
+                if (!addressNum) {
+                    alert('우편번호를 입력해주세요');
+                    return false;
+                } else if (!addressRoad) {
+                    alert('도로명주소를 입력해주세요');
+                    return false;
+                } else if (!addressDetail) {
+                    alert('상세주소를 입력해주세요');
+                    return false;
+                } 
+
                 //주소 특문 확인
-                if (addressNumCharacterCheck > -1 || addressNumSpecialCharacterCheck > -1) {
+                if (addressNumCharacterCheck > -1 || addressNumSpecialCharacterCheck > -1 || addressNumHangulCharacterCheck > -1) {
                     alert('정상적인 우편번호를 입력해주세요');
                     return false;
-                } else  if (addressRoadSpecialCharacterCheck > -1) {
+                } else  if (addressRoadSpecialCharacterCheck > -1 || addressRoadHangulCharacterCheck > -1) {
                     alert('정상적인 도로명주소를 입력해주세요');
+                    return false;
+                } else if (addressDetailSpecialCharacterCheck > -1 || addressDetailHangulCharacterCheck > -1) {
+                    alert('정상적인 상세주소를 입력해주세요');
                     return false;
                 }
 
                 //파일 유무 확인
-                if($('#file').val() != '') {
-                    var ext = $('#file').val().split('.').pop().toLowerCase();
+                if(file != '') {
+                    var ext = file.split('.').pop().toLowerCase();
                     //확장자명이 jpg나 png일떄만 실행
                     if($.inArray(ext,['jpg','png']) == -1){
                         alert('jpg, png 파일만 업로드 가능합니다.');
