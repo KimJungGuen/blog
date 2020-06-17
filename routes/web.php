@@ -22,7 +22,7 @@ Route::get('/', function () {
 Route::get('/users','UserController@index');
 //유저등록 페이지
 Route::get('/user',function(){
-    return view('RegisterPage');
+    return view('RegisterPage',array(['msg' => null]));
 });
 //유저등록 요청
 Route::post('/users','UserController@userRegister')->name('register');

@@ -188,21 +188,29 @@ class UserController extends Controller
     {
         $msg = '';
         $result = false;
-        try{
-            //파일 확인 및 업로드
-            if ($request->file('file')) {
-                $path = $request->file('file')->store('userFile');
-            } else {
-                $path = null;
-            }
+        $duplicateCount = $request->input('duplicateCount');
+        $fileArrayLength = count($request->file('file')) - 1;
 
-            //전화번호 및 이메일 포맷 변경
-            $tel = $this->phoneFormat($request->input('tel'));
-            $email = $request->input('email') . '@' . $request->input('emailDomain');
+        try{
+            for ($index = 0; $index <= $duplicateCount; $index++) {
+                //파일 확인 및 업로드
+                if ($fileArrayLength >= $index) {
+                    if ($request->file('file')[$index]) {
+                        $path[$index] = $request->file('file')[$index]->store('userFile');
+                    } else {
+                        $path = null;
+                    }
+                }
+                
+                //전화번호 및 이메일 포맷 변경
+                $tel[$index] = $this->phoneFormat($request->input('tel')[$index]);
+                $email[$index] = $request->input('email')[$index] . '@' . $request->input('emailDomain')[$index];
+                $userPw[$index] = md5($request->input('userPw')[$index]);
+            }
 
             $user = [
                 'userId' => $request->input('userId'),
-                'userPw' => md5($request->input('userPw')),
+                'userPw' => $userPw,
                 'name' => $request->input('name'),
                 'gender' => $request->input('gender'),
                 'age' => $request->input('age'),
@@ -215,20 +223,23 @@ class UserController extends Controller
                 'join_date' => Carbon::now(),
                 'marry' => $request->input('marry'),
                 'tel' => $tel,
-                'file' => $path
+                'file' => $path,
+                'duplicateCount' => $duplicateCount,
+                'fileArrayLength' => $fileArrayLength
             ];
+            
 
             $userModel = new NoticeBoard();
 
             $result = $userModel->userInsert($user);
             if (isset($result)) {
-                $msg = '회원등록에 성공했습니다.';
+                return view('/user', array([
+                    'msg' => '회원 등록에 성공했습니다.'
+                ]));
             }
         } catch (\Exception $e) {
-            $msg = '회원등록에 실패했습니다.';
+            abort(500, '회원 등록에 실패했습니다.');
         }
-
-        return response()->json(array('msg' => $msg, 'result' => $result));
     }
 
     /**
@@ -359,7 +370,7 @@ class UserController extends Controller
     {
         //전화번호 길이
         $telLength = Str::of($telNumber)->length();
-        $tel = '';
+        $tel = $telNumber;
 
         /**
          * 전화번호 패턴
@@ -376,7 +387,6 @@ class UserController extends Controller
          * **** - ****
          * 00* - * - ****
         */
-
         //전화번호 맨 앞자리 패턴을 기준으로 - 삽입 위치를 조정
         // i,g,      * + . ? 
         switch ($telLength) {

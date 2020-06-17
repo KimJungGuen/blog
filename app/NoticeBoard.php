@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Arr;
 use Carbon\Carbon;
 
 
@@ -80,25 +81,46 @@ class NoticeBoard extends Model
      * @return  boolean $result
     */
     public function userInsert(array $user) 
-    {
-        $result = $this->insert ([
-            'user_id' => $user['userId'],
-            'user_pw' => $user['userPw'],
-            'name' => $user['name'],
-            'gender' => $user['gender'],
-            'age' => $user['age'],
-            'accumulated' => $user['accumulated'],
-            'email' => $user['email'],
-            'address_num' => $user['addressNum'],
-            'address_road' => $user['addressRoad'],
-            'address_detail' => $user['addressDetail'],
-            'etc' => $user['etc'],
-            'join_date' => $user['join_date'],
-            'marry' => $user['marry'],
-            'tel' => $user['tel'],
-            'file' => $user['file']
-        ]);
-
+    {   
+        
+        for($index = 0; $index <= $user['duplicateCount'] ; $index++){
+            $users[$index] = [
+                'user_id' => $user['userId'][$index],
+                'user_pw' => $user['userPw'][$index],
+                'name' => $user['name'][$index],
+                'gender' => $user['gender'][$index],
+                'age' => $user['age'][$index],
+                'accumulated' => $user['accumulated'][$index],
+                'email' => $user['email'][$index],
+                'address_num' => $user['addressNum'][$index],
+                'address_road' => $user['addressRoad'][$index],
+                'address_detail' => $user['addressDetail'][$index],
+                'etc' => $user['etc'][$index],
+                'join_date' => $user['join_date'],
+                'marry' => $user['marry'][$index],
+                'tel' => $user['tel'][$index],
+                'file' => (isset($user['file'][$index])) ? $user['file'][$index] : NULL
+            ];
+        }
+        $result = $this->insert($users);
+        // $result = $this->insert ([
+        //     'user_id' => $user['userId'],
+        //     'user_pw' => $user['userPw'],
+        //     'name' => $user['name'],
+        //     'gender' => $user['gender'],
+        //     'age' => $user['age'],
+        //     'accumulated' => $user['accumulated'],
+        //     'email' => $user['email'],
+        //     'address_num' => $user['addressNum'],
+        //     'address_road' => $user['addressRoad'],
+        //     'address_detail' => $user['addressDetail'],
+        //     'etc' => $user['etc'],
+        //     'join_date' => $user['join_date'],
+        //     'marry' => $user['marry'],
+        //     'tel' => $user['tel'],
+        //     'file' => $user['file']
+        // ]);
+        
         return $result;
     }
 
