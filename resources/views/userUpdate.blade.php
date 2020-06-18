@@ -280,15 +280,16 @@
                     success:function(result){
                         alert(result.msg);
                         $(location).attr('href', '/users');
+                        return false;
                     },
                     error:function(request){
                         var errors = request.responseJSON.errors;
                         var error = '';
                         $.each(errors, function(index, value) {
-                            //유효성 검사가 복수로 걸릴경우 반복문돌면서 메시지 통합
-                            error += value + '\n'; 
+                            error = value;
+                            alert(error);
+                            return false;
                         });
-                        alert(error);
                     }
                 });
             }

@@ -27,7 +27,7 @@ class UserRequest extends FormRequest
      */
     public function rules(Request $request)
     {   
-        //dd($request->all());
+        //dd($request->file());
         switch (Route::currentRouteName())
         {
 
@@ -37,18 +37,18 @@ class UserRequest extends FormRequest
             case 'register':
                 return [
                     'name.*' => 'required|alpha|between:2,5|not_regex:/[\\x{3131}-\\x{318e}]/u',
-                    'userId.*' => 'required|alpha_num|between:5,20|unique:user,user_id|not_regex:/[\\x{3131}-\\x{318e}]/u',
+                    'userId.*' => 'required|alpha_num|mix_alpha_num|between:5,20|unique:user,user_id|not_regex:/[\\x{3131}-\\x{318e}]/u',
                     'age.*' => 'required|integer|max:99',
                     'userPw.*' => 'required|same:userPwCheck.*|between:5,20',
                     'userPwCheck.*' => 'required|between:5,20',
                     'tel.*' => 'required|digits_between:8,11',
                     'gender.*' => ['required', 'alpha', 'max:1', Rule::in(['M', 'F'])],
-                    'accumulated.*' => 'required|integer|between:1,2100000000',
+                    'accumulated.*' => 'required|regex:/^[1-9]/|integer|between:1,2100000000',
                     'addressNum.*' => 'required|max:5|regex:/[0-9]/',
-                    'addressRoad.*' => 'required|addressCharacterCheck',
-                    'addressDetail.*' => 'required|addressCharacterCheck',
+                    'addressRoad.*' => 'required|addressCharacterCheck|max:200',
+                    'addressDetail.*' => 'required|addressCharacterCheck|max:200',
                     'marry.*' => ['required', 'alpha', 'max:1', Rule::in(['S', 'M'])],
-                    'email.*' => 'required|alpha_num|max:20|not_regex:/[\\x{3131}-\\x{318e}]/u',
+                    'email.*' => 'required|alpha_num|mix_alpha_num|max:20|not_regex:/[\\x{3131}-\\x{318e}]/u',
                     'emailDomain.*' => [Rule::in(['naver.com', 'daum.com', 'gmail.com'])],
                     'agree.*' => 'required'
                 ];
@@ -58,11 +58,11 @@ class UserRequest extends FormRequest
                 return [
                     'userPw' => 'same:userPwCheck',
                     'tel' => 'required|digits_between:8,11',
-                    'accumulated' => 'required|integer|between:1,21000000000',
+                    'accumulated' => 'required|regex:/^[1-9]/|integer|between:1,21000000000',
                     'addressNum' => 'required|max:5|regex:/[0-9]/',
-                    'addressRoad' => 'required|addressCharacterCheck',
-                    'addressDetail' => 'required|addressCharacterCheck',
-                    'email' => 'required|alpha_num|max:20|not_regex:/[\\x{3131}-\\x{318e}]/u',
+                    'addressRoad' => 'required|addressCharacterCheck|max:200',
+                    'addressDetail' => 'required|addressCharacterCheck|max:200',
+                    'email' => 'required|alpha_num|mix_alpha_num|max:20|not_regex:/[\\x{3131}-\\x{318e}]/u',
                     'emailDomain' => [Rule::in(['naver.com', 'daum.com', 'gmail.com'])]
                 ];
 
@@ -112,8 +112,8 @@ class UserRequest extends FormRequest
                     'gender.*.max' => '비정상적인 성별 값입니다.',
                     'gender.*.in' => '성별을 선택해주세요',
                     'age.*.required' => '나이를 입력해주세요.',
-                    'age.*.integer' => '나이는 숫자만 입력해주세요.',
-                    'age.*.max' => '정상적인 나이를 입력해주세요',
+                    'age.*.integer' => '정상적인 나이를 입력해주세요.',
+                    'age.*.max' => '나이의 제한은 99세까지 입니다.',
                     'tel.*.required' => '전화번호를 입력해주세요.',
                     'tel.*.digits_between' => '전화번호는 11자리와 숫자만 입력해주세요.',
                     'email.*.required' => 'email을 입력해주세요.',
@@ -121,8 +121,9 @@ class UserRequest extends FormRequest
                     'email.*.not_regex' => '정상적인 email을 입력해주세요',
                     'emailDomain.*.in' => 'email 도메인을 선택해주세요.',
                     'accumulated.*.required' => '적립금을 입력해주세요.',
-                    'accumulated.*.integer' => '적립금은 숫자만 입력해주세요',
-                    'accumulated.*.between' => '적립금은 1원이상 21억 원 사이로 입력해주세요',
+                    'accumulated.*.regex' => '맨 앞자리수는 0을 제외하고 입력해주세요.',
+                    'accumulated.*.integer' => '정상적인 적립급을 입력해주세요',
+                    'accumulated.*.max' => '적립금의 한도는 21억 입니다.',
                     'marry.*.required' => '결혼상태를 선택해주세요.',
                     'marry.*.alpha' => '결혼상태의 값이 비정상적입니다.',
                     'marry.*.max' => '결혼상태의 값이 비정상적입니다.',
@@ -130,7 +131,9 @@ class UserRequest extends FormRequest
                     'addressNum.*.required' => '우편번호를 입력해주세요.',
                     'addressNum.*.max' => '정상적인 우편번호를 입력해주세요.',
                     'addressRoad.*.required' => '도로명을 입력해주세요',
+                    'addressRoad.*.max' => '입력길이가 한도를 넘어섰습니다.',
                     'addressDetail.*.required' => '상제주소를 입력해주세요',
+                    'addressDetail.*.required' => '입력길이가 한도를 넘어섰습니다.',
                     'agree.*.required' => '개인정보 이용 동의를 해주세요.'
                 ];
         
@@ -141,12 +144,15 @@ class UserRequest extends FormRequest
                     'tel.required' => '전화번호를 입력해주세요.',
                     'tel.digits_between' => '전화번호는 11자리와 숫자만 입력해주세요.',
                     'accumulated.required' => '적립금을 입력해주세요.',
+                    'accumulated.*.regex' => '맨 앞자리수는 0을 제외하고 입력해주세요.',
                     'accumulated.integer' => '적립금은 숫자만 입력해주세요',
                     'accumulated.between' => '적립금은 1원이상 21억 원 사이로 입력해주세요',
                     'addressNum.required' => '우편번호를 입력해주세요.',
                     'addressNum.max' => '정상적인 우편번호를 입력해주세요.',
                     'addressRoad.required' => '도로명을 입력해주세요',
+                    'addressRoad.*.max' => '입력길이가 한도를 넘어섰습니다.',
                     'addressDetail.required' => '상제주소를 입력해주세요',
+                    'addressDetail.*.max' => '입력길이가 한도를 넘어섰습니다.',
                     'email.required' => 'email을 입력해주세요.',
                     'email.alpha_num' => '정상적인 email을 입력해주세요.',
                     'email.not_regex' => '정상적인 email을 입력해주세요',
@@ -165,6 +171,7 @@ class UserRequest extends FormRequest
                     'userId.required' => 'id를 입력해주세요.',
                     'userId.unique' => 'id가 중복되었습니다.',
                     'userId.between' => 'Id를 5자에서 20자 사이로 입력해주세요.',
+                    'userId.not_regex' => '영문 또는 영문, 숫자 혼합해주세요'
                 ];
 
             //유저 pwCheck

@@ -13,19 +13,21 @@
     <body>
         <div id="create" class="contains">
             <form id="userCreate" class="form" name="userCreate" enctype="multipart/form-data"  method="post" action="/users">
+                <input type="hidden" id="multipleCount" name="multipleCount" value="{{ old('multipleCount', 1)}}">
                 @csrf
+                @for($index = 0; $index < old('multipleCount', 1); $index++)
                 <table id="createTable" class="table table-bordered">
                     <tbody>
                         <tr>
                             <td>이름</td>
                             <td>
-                                <input type="text" id="name" class="name" name="name[]" maxlength="5" />
+                                <input type="text" id="name" class="name" name="name[]" value="{{ old('name.' . $index) }}" maxlength="5" />
                             </td>
                         </tr>
                         <tr>
                             <td>아이디</td>
                             <td>
-                                <input type="text" id="userId" class="userId" name="userId[]" maxlength="20" onkeydown="idCheckClear(this);"/>
+                                <input type="text" id="userId" class="userId" name="userId[]" value="{{ old('userId.' . $index) }}" maxlength="20" onkeydown="idCheckClear(this);"/>
                                 <input type="hidden" id="idStatus" class="idStatus" value="false" />
                                 <button type="button" id="idCheck" class="btn btn-success" onclick="userIdCheck(this);">아이디중복확인</button>
                             </td>
@@ -33,94 +35,93 @@
                         <tr>
                             <td>비밀번호</td>
                             <td>
-                                <input type="password" id="userPw" class="userPw" name="userPw[]" maxlength="20"/>
+                                <input type="password" id="userPw" class="userPw" name="userPw[]" value="" maxlength="20"/>
                             </td>
                         </tr>
                         <tr>
                             <td>비밀번호 확인</td>
                             <td>
-                                <input type="password" id="userPwCheck" class="userPwCheck" name="userPwCheck[]" maxlength="20"/>
+                                <input type="password" id="userPwCheck" class="userPwCheck" name="userPwCheck[]" value="" maxlength="20"/>
                             </td>
                         </tr>
                         <tr>
                             <td>성별</td>
                             <td>
                                 <select id="gender" class="gender" name="gender[]">
-                                    <option>선택</option>
-                                    <option value="M">남</option>
-                                    <option value="F">여</option>
+                                    <option @if (old('gender.' . $index) == '선택') selected @endif>선택</option>
+                                    <option @if (old('gender.' . $index) == 'M') selected @endif value="M">남</option>
+                                    <option @if (old('gender.' . $index) == 'F') selected @endif value="F">여</option>
                                 </select>
                             </td>
                         </tr>
                         <tr>
                             <td>나이</td>
                             <td>
-                                <input type="text" id="age" class="age numberOnly" name="age[]" maxlength="2" />
+                                <input type="text" id="age" class="age numberOnly" name="age[]" value="{{ old('age.' . $index) }}" maxlength="2" />
                             </td>
                         </tr>
                         <tr>
                             <td>전화번호</td>
                             <td>
-                                <input type="text" id="tel" class="tel numberOnly" name="tel[]" maxlength="11" />
+                                <input type="text" id="tel" class="tel numberOnly" name="tel[]" value="{{ old('tel.' . $index) }}" maxlength="11" />
                             </td>
                         </tr>
                         <tr>
                             <td>이메일</td>
                             <td>
-                                <input type="text" id="email" class="email" name="email[]" maxlength="30" /> @
+                                <input type="text" id="email" class="email" name="email[]" value="{{ old('email.' . $index) }}" maxlength="30" /> @
                                 <select id="emailDomain" class="emailDomain" name="emailDomain[]">
-                                    <option>선택</option>
-                                    <option value="naver.com">naver.com</option>
-                                    <option value="gmail.com">gmail.com</option>
-                                    <option value="daum.com">daum.com</option>
+                                    <option @if (old('emailDomain.' . $index) == '선택') selected @endif>선택</option>
+                                    <option value="naver.com" @if (old('emailDomain.' . $index) == 'naver.com') selected @endif>naver.com</option>
+                                    <option value="gmail.com" @if (old('emailDomain.' . $index) == 'gmail.com') selected @endif >gmail.com</option>
+                                    <option value="daum.com" @if (old('emailDomain.' . $index) == 'daum.com') selected @endif >daum.com</option>
                                 </select>
                             </td>
                         </tr>
                         <tr>
                             <td>적립금</td>
                             <td>
-                                <input type="text" id="accumulated" class="accumulated numberOnly text-right" name="accumulated[]" maxlength="10" placeholder="0"/>
+                                <input type="text" id="accumulated" class="accumulated numberOnly text-right" name="accumulated[]" value="{{ old('accumulated.' . $index) }}" maxlength="10" placeholder="0"/>
                             </td>
                         </tr>
                         <tr>
                             <td>결혼 여부</td>
                             <td>
-                                <input type="radio" class="findMarry"  name="marry[0]" value="S" />미혼
-                                <input type="radio" name="marry[0]" value="M" />기혼
+                                <input type="radio" class="findMarry"  name="marry[{{ $index }}]" value="S" @if (old('marry.' . $index) == 'S') checked @endif/>미혼
+                                <input type="radio" name="marry[{{ $index }}]" value="M" @if (old('marry.' . $index) == 'M') checked @endif/>기혼
                             </td>
                         </tr>
                         <tr>
                             <td>우편번호</td>
                             <td>
-                                <input type="text" id="addressNum" class="addressNum numberOnly" name="addressNum[]" readonly/>
-                                <button type="button" id="0" class="addressBtn btn" onclick="addressModal(this)">우편번호 찾기</button>
+                                <input type="text" id="addressNum" class="addressNum numberOnly" name="addressNum[]" value="{{ old('addressNum.' . $index) }}" readonly maxlength="200"/>
+                                <button type="button" id="{{ $index }}" class="addressBtn btn" onclick="addressModal(this)">우편번호 찾기</button>
                             </td>
                         </tr>
                         <tr>
                             <td>기본주소</td>
-                            <td><input type="text" id="addressRoad" class="addressRoad" name="addressRoad[]" style="width:100%" readonly/></td>
+                            <td><input type="text" id="addressRoad" class="addressRoad" name="addressRoad[]" value="{{ old('addressRoad.' . $index) }}" style="width:100%" readonly maxlength="200"/></td>
                         </tr>
                         <tr>
                             <td>상세주소</td>
-                            <td><input type="text" id="addressDetail" class="addressDetail" name="addressDetail[]" style="width:100%" maxlength="50" /></td>
+                            <td><input type="text" id="addressDetail" class="addressDetail" name="addressDetail[]" value="{{ old('addressDetail.' . $index) }}" style="width:100%" maxlength="50" /></td>
                         </tr>
                         <tr>
                             <td>파일 업로드</td>
-                            <td><input type="file" id="file" class="file" name="file[]" value="" Onchange="filePreView(this);" /><img id="preImg" class="preImg" src="#"  width="200" height="200"/></td>
+                            <td>
+                                <input type="file" id="file" class="file" name="file_0" value="" Onchange="filePreView(this);" />     
+                                <img id="preImg" class="preImg" name="preImg" src="#" width="200" height="200"/>
+                            </td>
                         </tr>
                         <tr>
                             <td>비고</td>
-                            <td><textarea rows="2" id="etc" class="etc" name="etc[]" style="width:100%" maxlength="300"></textarea></td>
-                        </tr>
-                        <tr>
-                            <td colspan="2">
-                                <input type="checkbox" id="agree" class="agree" name="agree[]" value="1" />개인정보수집동의
-                            </td>
+                            <td><textarea rows="2" id="etc" class="etc" name="etc[]" style="width:100%" maxlength="300">{{ old('etc.' . $index) }}</textarea></td>
                         </tr>
                     </tbody>
                 </table>
-                <input type="hidden" id="duplicateCount" name="duplicateCount" value="0" />
+                @endfor
             </form>
+            <span><input type="checkbox" id="agree" value="1" />개인정보수집동의</span>
         </div>
         <button type="button" id="submitBtn" class="btn btn-primary" onclick="validate();">저장하기</button>
         <button type="button" id="Btn" class="btn btn-primary" onclick="duplicate();">다중등록</button>
@@ -128,56 +129,60 @@
         @if ($errors->any())
             <input type="hidden" id="validationErrors" value="{{ $errors }}" />
         @endif
-        @if ($msg)
+        @if ($msg ?? false)
             <input type="hidden" id="userRegisterMsg" value="{{ $msg }}" />
+            <input type="hidden" id="registerCheck" value="{{ $registerCheck }}" />
         @endif
         <script>
 
-            var duplicateCount = 0;
 
             function duplicate()
             {
-                if (duplicateCount < 2) {
-                    var index = duplicateCount;
-                    $marrysc = $('.findMarry').prop('checked');
+                var index = $('#multipleCount').val();
+                if (index < 3) {
+                    marrySingleCheck = $('.findMarry').eq(0).prop('checked');
+                    marryCheck = $('.findMarry').eq(0).next().prop('checked');
 
                     $afterMarry = $('input[name=marray]:checked');
-                    $table = $('#createTable').clone(true).appendTo($('#userCreate'));;
-                    index = ++duplicateCount;
-                    $('.addressBtn:eq(' + index + ')').attr('id', index);
-                    $('.idStatus:eq(' + index + ')').attr('value', false);
-                    $('.findMarry:eq(' + index + ')').attr('name', 'marry[' + index + ']');
-                    $('.findMarry:eq(' + index + ')').next().attr('name', 'marry[' + index + ']');
+                    $table = $('#createTable').clone(true).appendTo($('#userCreate'));
 
-                    if ($marrysc) {
-                        $('.findMarry:eq(0)').prop('checked', true);
-                    } else {
-                        $('.findMarry:eq(0)').next().prop('checked', true);
+                    $('#multipleCount').attr('value', Number(index) + 1);
+                    $('.addressBtn').eq(index).attr('id', index);
+                    $('.idStatus').eq(index).attr('value', false);
+                    $('.findMarry').eq(index).attr('name', 'marry[' + index + ']');
+                    $('.findMarry').eq(index).next().attr('name', 'marry[' + index + ']');
+                    $('.file').eq(index).attr('name', 'file_' + index);
+
+                    if (marrySingleCheck) {
+                        $('.findMarry').eq(0).prop('checked', true);
+                    } else if(marryCheck) {
+                        $('.findMarry').eq(0).next().prop('checked', true);
                     }
+
                     Initialization(index);
                 }
             }
 
             function Initialization(index)
             {
-                $('.name:eq(' + index + ')').val('');
-                $('.userId:eq(' + index + ')').val('');
-                $('.userPw:eq(' + index + ')').val('');
-                $('.userPwCheck:eq(' + index + ')').val('');
-                $('.gender:eq(' + index + ')').val('선택');
-                $('.age:eq(' + index + ')').val('');
-                $('.tel:eq(' + index + ')').val('');
-                $('.email:eq(' + index + ')').val('');
-                $('.emailDomain:eq(' + index + ')').val('선택');
-                $('.accumulated:eq(' + index + ')').val('');
-                $('.addressNum:eq(' + index + ')').val('');
-                $('.addressRoad:eq(' + index + ')').val('');
-                $('.addressDetail:eq(' + index + ')').val('');
-                $('.file:eq(' + index + ')').val('');
-                $('.preImg:eq(' + index + ')').attr('src', '');
-                $('.etc:eq(' + index + ')').val('');
-                $('.findMarry:eq(' + index + ')').prop('checked', false);
-                $('.findMarry:eq(' + index + ')').prop('checked', false);
+                $('.name').eq(index).val('');
+                $('.userId').eq(index).val('');
+                $('.userPw').eq(index).val('');
+                $('.userPwCheck').eq(index).val('');
+                $('.gender').eq(index).val('선택');
+                $('.age').eq(index).val('');
+                $('.tel').eq(index).val('');
+                $('.email').eq(index).val('');
+                $('.emailDomain').eq(index).val('선택');
+                $('.accumulated').eq(index).val('');
+                $('.addressNum').eq(index).val('');
+                $('.addressRoad').eq(index).val('');
+                $('.addressDetail').eq(index).val('');
+                $('.file').eq(index).val('');
+                $('.preImg').eq(index).attr('src', '');
+                $('.etc').eq(index).val('');
+                $('.findMarry').eq(index).prop('checked', false);
+                $('.findMarry').eq(index).next().prop('checked', false);
             }
 
             window.onload = function () 
@@ -192,10 +197,13 @@
                         return false;
                     });
                 }
-
+                var registerCheck = $('#registerCheck').val();
                 var userRegisterMsg = $('#userRegisterMsg').val();
                 if (userRegisterMsg != undefined) {
                     alert(userRegisterMsg);
+                    if (registerCheck) {
+                        $(location).attr('href', '/users');
+                    }
                 }
             }
 
@@ -257,6 +265,24 @@
             //@brief    유저 아이디 중복 확인
             function userIdCheck(idCheck)
             {
+                var userIdArray = {};
+                var limit = $('#multipleCount').val();
+                var idValueCheck = false;
+
+                for (var index = 0; index < limit; index++) {
+                    userIdArray[index] = $('.userId').eq(index).val();
+                }
+                
+
+                for (var index = 0; index < limit; index++) {
+                    for (var indexBefore = index+1; indexBefore < limit; indexBefore++) {
+                        idValuecheck = (userIdArray[index] == userIdArray[indexBefore]) ? true : false;
+                        if (idValuecheck) {
+                            return alert('다른 다중등록 ID와 중복됐습니다.');
+                        }
+                    }
+                }
+                
                 userId = $(idCheck).prev().prev().val();
                 var userIdSpecialCharacter = userId.search(/[~!@#$%^&*()<>?]/ig);
                 //아이디 특수문자 확인 및 아이디 값 전송 
@@ -286,7 +312,7 @@
             //@brief    데이터 유효성 판단 및 전송
             function validate()
             {
-                for(var index = 0 ; index <= duplicateCount ; index++) {
+                for(var index = 0 ; index < $('#multipleCount').val() ; index++) {
 
                     //특수문자, 문자, 숫자 정규식 지정
                     var specialCharacter = /[`~!@#$%^&\*\(\)_\+=\{\}\[\]/;:'"<>,\|\.\?\s\\\-]/;
@@ -296,70 +322,73 @@
 
                     //search() 검사하는 값이 없을경우 -1을 반환
                     //비밀번호, 비밀번호 확인 숫자, 문자, 특수문자 확인
-                    var pw = $('.userPw:eq(' + index + ')').val();
-                    var pwCheck = $('.userPwCheck:eq(' + index + ')').val();
-                    var pwNumberCheck = pw.search(number);
-                    var pwCharacterCheck = pw.search(character);
-                    var pwSpecialCharacterCheck = pw.search(specialCharacter);
+                    
+                    var $pw = $('.userPw').eq(index);
+                    var $pwCheck = $('.userPwCheck').eq(index);
+                    var pwNumberCheck = $pw.val().search(number);
+                    var pwCharacterCheck = $pw.val().search(character);
+                    var pwSpecialCharacterCheck = $pw.val().search(specialCharacter);
 
                     //이름 숫자, 특수문자 확인
-                    var name = $('.name:eq(' + index +')').val();
+                    var name = $('.name').eq(index).val();
                     var nameNumberCheck = name.search(number);
                     var nameSpecialCharacterCheck = name.search(specialCharacter);
                     var nameHangulCharacterCheck = name.search(Hangul);
                     
                     //유저 아이디 특수문자, 한글 초성 확인
-                    var userId = $('.userId:eq(' + index + ')').val();
+                    var userId = $('.userId').eq(index).val();
                     var userIdHangulCharacterCheck = userId.search(Hangul);
                     var userIdSpecialCharacterCheck = userId.search(specialCharacter);
                     var userIdCharacterCheck = userId.search(character);
 
                     //이메일 특수문자 확인
-                    var email = $('.email:eq(' + index + ')').val();
+                    var email = $('.email').eq(index).val();
                     var emailCharacterCheck = email.search(character);
                     var emailSpecialCharacterCheck = email.search(specialCharacter);
                     var emailHangulCharacterCheck = email.search(Hangul);
 
                     //나이
-                    var age = $('.age:eq(' + index + ')').val();
+                    var age = $('.age').eq(index).val();
                     var ageCharacterCheck = age.search(character);
                     var ageSpecialCharacterCheck = age.search(specialCharacter);
                     var ageHangulCharacterCheck = age.search(Hangul);
                     
                     //전화번호
-                    var tel = $('.tel:eq(' + index + ')').val();
+                    var tel = $('.tel').eq(index).val();
                     var telCharacterCheck = tel.search(character);
                     var telSpecialCharacterCheck = tel.search(specialCharacter);
                     var telHangulCharacterCheck = tel.search(Hangul);
 
                     //적립금
-                    var accumulated = $('.accumulated:eq(' + index + ')').val();
+                    var accumulated = $('.accumulated').eq(index).val();
                     var accumulatedCharacterCheck = accumulated.search(character);
                     var accumulatedSpecialCharacterCheck = accumulated.search(specialCharacter);
                     var accumulatedHangulCharacterCheck = accumulated.search(Hangul);
 
                     //우편번호 문자, 특수문자 확인
-                    var addressNum = $('.addressNum:eq(' + index + ')').val();
+                    var addressNum = $('.addressNum').eq(index).val();
                     var addressNumCharacterCheck = addressNum.search(character);
                     var addressNumSpecialCharacterCheck = addressNum.search(specialCharacter);
                     var addressNumHangulCharacterCheck = addressNum.search(Hangul);
 
                     //도로명 주소 특수문자 확인
-                    var addressRoad = $('.addressRoad:eq(' + index + ')').val();
-                    var addressRoadSpecialCharacterCheck = addressRoad.search(/[`~!@#$%^&\*_\+=;:'"\{\}<>\?\\\|\-]/g);
+                    var addressRoad = $('.addressRoad').eq(index).val();
+                    var addressRoadSpecialCharacterCheck = addressRoad.search(/[`~!@#$%^&\*\+=;:'"\{\}\?\\\|]/g);
                     var addressRoadHangulCharacterCheck = addressRoad.search(Hangul);
 
                     //상세주소 특수문자 확인
-                    var addressDetail = $('.addressDetail:eq(' + index + ')').val();
-                    var addressDetailSpecialCharacterCheck = addressDetail.search(/[`~!@#$%^&\*_\+=\{\};:'"<>/\?\\\|\-]/g);
+                    var addressDetail = $('.addressDetail').eq(index).val();
+                    var addressDetailSpecialCharacterCheck = addressDetail.search(/[`~!@#$%^&\*\+=\{\};:'<>"\/\?\\\|]/g);
                     var addressDetailHangulCharacterCheck = addressDetail.search(Hangul);
 
-                    var idStatus = $('.idStatus:eq(' + index + ')').val();
-                    var gender = $('.gender:eq(' + index + ')').val();
-                    var emailDomain = $('.emailDomain:eq(' + index + ')').val();
-                    var agree = $('.agree:eq(' + index + '):checked').val();
-                    var marry = $('input[name=marry]:checked').val();
-                    var file = $('.file:eq(' + index + ')').val();
+                    var idStatus = $('.idStatus').eq(index).val();
+                    var gender = $('.gender').eq(index).val();
+                    var emailDomain = $('.emailDomain').eq(index).val();
+                    var $marrySingleCheck = $('.findMarry').eq(index).prop('checked');
+                    var $marryCheck = $('.findMarry').eq(index).next().prop('checked');
+                    var file = $('.file').eq(index).val();
+
+
 
                     //이름 빈값 확인
                     if (name.length < 2) 
@@ -374,6 +403,9 @@
                     //아이디 빈 값 확인
                     if (valueCheck(userId)) {
                         alert('아이디를 입력해주세요');
+                        return false;
+                    } else if (userId.length <= 5 || userId.length >= 20) {
+                        alert('아이디는 5자 이상 20자 이하로 입력해주세요.');
                         return false;
                     } else if (userIdHangulCharacterCheck > -1 || userIdSpecialCharacterCheck > -1) {
                         alert('아이디는 영문이거나 영문, 숫자 혼용 만 가능합니다.');
@@ -390,25 +422,34 @@
                     } 
 
                     //비밀번호 빈 값 확인
-                    if (valueCheck(pw)) {
+                    if (valueCheck($pw.val())) {
                         alert('비밀번호를 입력해주세요');
                         return false;
-                    } else if (valueCheck(pwCheck)) {
+                    } else if (valueCheck($pwCheck.val())) {
                         alert('비밀번호 확인을 입력해주세요');
                         return false;
                     } 
 
                     //비밀번호 자릿수 및 공백, 영어 숫자 특문 혼용 확인, 일치 확인
-                    if (pw !== pwCheck) {
+                    if ($pw.val() !== $pwCheck.val()) {
                         alert('비밀번호가 일치하지 않습니다.');
+                        $pw.val('');
+                        $pwCheck.val('');
                         return false;
-                    } else if(pw.search(/\s/) != -1) {
+                    } else if($pw.val().search(/\s/) != -1) {
                         alert('비밀번호는 공백없이 입력해주세요.');
-                    } else if (pw.length < 8 || pw.length > 20) {
+                        $pw.val('');
+                        $pwCheck.val('');
+                        return false;
+                    } else if ($pw.val().length < 8 || $pw.val().length > 20) {
                         alert('비밀번호는 8자리 ~ 20자리 이내로 입력해주세요.');
+                        $pw.val('');
+                        $pwCheck.val('');
                         return false;
                     } else if (pwNumberCheck < 0 || pwCharacterCheck < 0 || pwSpecialCharacterCheck < 0 ) {
                         alert('영문,숫자, 특수문자를 혼합하여 입력해주세요.');
+                        $pw.val('');
+                        $pwCheck.val('');
                         return false;
                     } 
 
@@ -471,12 +512,11 @@
                         alert('21억 이하로 입력해주세요.');
                         return false;
                     }
-                    
-                    // // 결혼 상태 확인
-                    // if (valueCheck(marry)) {
-                    //       alert('결혼 상태를 체크해주세요')
-                    //       return false;
-                    // }
+
+                    if ($marrySingleCheck == false && $marryCheck == false) {
+                        alert('결혼 상태를 체크해주세요')
+                        return false;
+                    }
 
                     //주소 빈 값 확인
                     if (valueCheck(addressNum)) {
@@ -512,14 +552,16 @@
                             return false;
                         }
                     } 
-
-                    //개인정보수집동의 확인
-                    if (valueCheck(agree)) {
-                        alert('개인정보수집동의 박스를 체크해주세요.');
-                        return false;
-                    }
                 }
-                $('#duplicateCount').val(duplicateCount);
+                
+                var agree = $('#agree:checked').val();
+
+                //개인정보수집동의 확인
+                if (valueCheck(agree)) {
+                    alert('개인정보수집동의 박스를 체크해주세요.');
+                    return false;
+                }
+
                 $('.form').submit();
             }
 

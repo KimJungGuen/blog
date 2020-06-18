@@ -34,5 +34,20 @@ class AppServiceProvider extends ServiceProvider
         Validator::replacer('addressCharacterCheck', function ($address, $value, $parameters, $validator) {
             return '주소를 제대로 입력해주세요.';
         });
+
+        Validator::extend('mix_alpha_num', function($filed, $value, $parameters, $validator) {
+            
+            $characterCheck = preg_match('/[a-z]/i', $value);
+            $numCheck = preg_match('/[0-9]/', $value);
+            $mixCharacterCheck = ($characterCheck && $numCheck) ? true : false;
+
+            return ($characterCheck || $mixCharacterCheck) ? true : false;
+        });
+
+        Validator::replacer('mix_alpha_num', function ($filed, $value, $parameters, $validator) {
+            return '영문 또는 영문,숫자 혼합으로 입력해주세요.';
+        });
+
+
     }
 }

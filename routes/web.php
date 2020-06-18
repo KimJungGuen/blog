@@ -14,15 +14,15 @@ use App\Http\Middleware\History;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
 //메인페이지
 Route::get('/users','UserController@index');
 //유저등록 페이지
 Route::get('/user',function(){
-    return view('RegisterPage',array(['msg' => null]));
+    return view('RegisterPage', array('registerCheck' => false));
 });
 //유저등록 요청
 Route::post('/users','UserController@userRegister')->name('register');

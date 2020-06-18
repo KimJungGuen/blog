@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
@@ -185,21 +186,22 @@ class UserController extends Controller
      * @throws  Exception
     */
     public function userRegister(UserRequest $request)
-    {
+    {   
+        //dump($request->all());
+        //dd(old('name[]'));
         $msg = '';
         $result = false;
-        $duplicateCount = $request->input('duplicateCount');
-        $fileArrayLength = count($request->file('file')) - 1;
-
+        $multipleCount = $request->input('multipleCount');
+        $test=$request->toArray();
+        $path = array();
+        //dd($request);
         try{
-            for ($index = 0; $index <= $duplicateCount; $index++) {
-                //파일 확인 및 업로드
-                if ($fileArrayLength >= $index) {
-                    if ($request->file('file')[$index]) {
-                        $path[$index] = $request->file('file')[$index]->store('userFile');
-                    } else {
-                        $path = null;
-                    }
+            for ($index = 0; $index < $multipleCount; $index++) {
+                
+                if ($request->file('file_' . $index)) {
+                    $path[$index] = $request->file('file_' . $index)->store('userFile');
+                } else {
+                    $path[$index] = null;
                 }
                 
                 //전화번호 및 이메일 포맷 변경
@@ -224,8 +226,7 @@ class UserController extends Controller
                 'marry' => $request->input('marry'),
                 'tel' => $tel,
                 'file' => $path,
-                'duplicateCount' => $duplicateCount,
-                'fileArrayLength' => $fileArrayLength
+                'multipleCount' => $multipleCount,
             ];
             
 
@@ -233,12 +234,18 @@ class UserController extends Controller
 
             $result = $userModel->userInsert($user);
             if (isset($result)) {
-                return view('/user', array([
-                    'msg' => '회원 등록에 성공했습니다.'
-                ]));
+                $msg = '회원등록에 성공했습니다.';
+                return view('RegisterPage', array(
+                    'msg' => $msg, 
+                    'registerCheck' => true
+                ));
             }
         } catch (\Exception $e) {
-            abort(500, '회원 등록에 실패했습니다.');
+            $msg = '회원등록에 실패했습니다.';
+            return view('RegisterPage', array(
+                'msg' => $msg, 
+                'registerCheck' => false
+            ));
         }
     }
 
@@ -383,6 +390,9 @@ class UserController extends Controller
          * 0** - *** - ****
          * 00* - *** - ****
          * 
+         * 9
+         * ***** - ****
+         * 
          * 8
          * **** - ****
          * 00* - * - ****
@@ -394,11 +404,14 @@ class UserController extends Controller
                 $tel = preg_replace('/([0-9]{3})([0-9]{4})([0-9]{4})/', '$1-$2-$3', $telNumber);
                 break;
             case 10:
-                if (preg_match('/^01[0-9]/', $telNumber) || preg_match('/^0[3-9]{2}/', $telNumber) || preg_match('/^00[0-9]/', $telNumber)) {
+                if (preg_match('/^(02)/', $telNumber)) {
                     $tel = preg_replace('/([0-9]{3})([0-9]{3})([0-9]{4})/', '$1-$2-$3', $telNumber);
-                } else if (preg_match('/^02/', $telNumber)) {
+                } else {
                     $tel = preg_replace('/([0-9]{2})([0-9]{4})([0-9]{4})/', '$1-$2-$3', $telNumber);
                 }
+                break;
+            case 9:
+                $tel = preg_replace('/([0-9]{5})([0-9]{4})/', '$1-$2', $telNumber);
                 break;
             case 8:
                 if (preg_match('/^00[0-9]/', $telNumber)) {

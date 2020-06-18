@@ -82,8 +82,7 @@ class NoticeBoard extends Model
     */
     public function userInsert(array $user) 
     {   
-        
-        for($index = 0; $index <= $user['duplicateCount'] ; $index++){
+        for($index = 0; $index < $user['multipleCount'] ; $index++){
             $users[$index] = [
                 'user_id' => $user['userId'][$index],
                 'user_pw' => $user['userPw'][$index],
@@ -101,7 +100,9 @@ class NoticeBoard extends Model
                 'tel' => $user['tel'][$index],
                 'file' => (isset($user['file'][$index])) ? $user['file'][$index] : NULL
             ];
+            
         }
+        // dd($users);
         $result = $this->insert($users);
         // $result = $this->insert ([
         //     'user_id' => $user['userId'],
