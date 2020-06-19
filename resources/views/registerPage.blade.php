@@ -16,7 +16,7 @@
                 <input type="hidden" id="multipleCount" name="multipleCount" value="{{ old('multipleCount', 1)}}">
                 @csrf
                 @for($index = 0; $index < old('multipleCount', 1); $index++)
-                <table id="createTable" class="table table-bordered">
+                <table id="createTable" class="createTable table table-bordered">
                     <tbody>
                         <tr>
                             <td>이름</td>
@@ -124,21 +124,20 @@
             <span><input type="checkbox" id="agree" value="1" />개인정보수집동의</span>
         </div>
         <button type="button" id="submitBtn" class="btn btn-primary" onclick="validate();">저장하기</button>
-        <button type="button" id="Btn" class="btn btn-primary" onclick="duplicate();">다중등록</button>
+        <button type="button" id="duplicateBtn" class="btn btn-primary" onclick="duplicate();">다중 등록</button>
+        <button type="button" id="deleteBtn" class="btn btn-danger" onclick="duplicateDelete();">다중 등록 취소</button>
 
         @if ($errors->any())
-            <input type="hidden" id="validationErrors" value="{{ $errors }}" />
+            <input type="hidden" id="validationErrors" value="{{ $errors->first() }}" />
         @endif
-        @if ($msg ?? false)
-            <input type="hidden" id="userRegisterMsg" value="{{ $msg }}" />
-            <input type="hidden" id="registerCheck" value="{{ $registerCheck }}" />
+        @if (\Session::has('msg'))
+            <input type="hidden" id="userRegisterMsg" value="{{ \Session::get('msg') }}" />
         @endif
         <script>
 
-
             function duplicate()
             {
-                var index = $('#multipleCount').val();
+                var index = $('table').length
                 if (index < 3) {
                     marrySingleCheck = $('.findMarry').eq(0).prop('checked');
                     marryCheck = $('.findMarry').eq(0).next().prop('checked');
@@ -148,7 +147,7 @@
 
                     $('#multipleCount').attr('value', Number(index) + 1);
                     $('.addressBtn').eq(index).attr('id', index);
-                    $('.idStatus').eq(index).attr('value', false);
+                    $('.idStatus').eq(index).val(false);
                     $('.findMarry').eq(index).attr('name', 'marry[' + index + ']');
                     $('.findMarry').eq(index).next().attr('name', 'marry[' + index + ']');
                     $('.file').eq(index).attr('name', 'file_' + index);
@@ -160,6 +159,15 @@
                     }
 
                     Initialization(index);
+                }
+            }
+
+            function duplicateDelete()
+            {
+                var index = $('table').length;
+
+                if (index > 1) {
+                    $('.createTable').eq(index-1).remove();
                 }
             }
 
@@ -185,25 +193,22 @@
                 $('.findMarry').eq(index).next().prop('checked', false);
             }
 
+
             window.onload = function () 
             {
                 var errors = $('#validationErrors').val();
-                var error = '';
+               
                 if (errors != undefined) {
-                    errors = JSON.parse(errors);
-                    $.each(errors, function(index, value) {
-                        error = value;
-                        alert(error);
-                        return false;
-                    });
+                    alert(errors);
+                    return false;
                 }
-                var registerCheck = $('#registerCheck').val();
+
                 var userRegisterMsg = $('#userRegisterMsg').val();
+
                 if (userRegisterMsg != undefined) {
-                    alert(userRegisterMsg);
-                    if (registerCheck) {
-                        $(location).attr('href', '/users');
-                    }
+                    alert(userRegisterMsg); 
+                    $(location).attr('href', '/users');
+                    return false;
                 }
             }
 
@@ -225,13 +230,14 @@
             }
             
             //@brief    아이디 중복확인 초기화
+            //@param    text   input userId
             function idCheckClear(input) 
             {
                 $(input).next().val(false);
-                //$('#idStatus').val(false);
             }
 
             //@brief    유저 파일 업로드시 미리보기
+            //@param    file   input file
             function filePreView(input) 
             {
                 if (input.files && input.files[0]) {
@@ -261,29 +267,35 @@
                     popupName : 'postCodePopup'
                 });
             }
+            
 
             //@brief    유저 아이디 중복 확인
-            function userIdCheck(idCheck)
+            function userIdCheck($idCheck)
             {
-                var userIdArray = {};
-                var limit = $('#multipleCount').val();
-                var idValueCheck = false;
+                var userId = $($idCheck).closest('td').find('input#userId').val();
+                var userIdArray = [];
+                var limit = $('table').length;
+                var duplicateCount = 0;
+
 
                 for (var index = 0; index < limit; index++) {
                     userIdArray[index] = $('.userId').eq(index).val();
                 }
-                
+
+                if(userId == '') {
+                    return alert('Id를 입력해주세요.');
+                }
 
                 for (var index = 0; index < limit; index++) {
-                    for (var indexBefore = index+1; indexBefore < limit; indexBefore++) {
-                        idValuecheck = (userIdArray[index] == userIdArray[indexBefore]) ? true : false;
-                        if (idValuecheck) {
-                            return alert('다른 다중등록 ID와 중복됐습니다.');
-                        }
+                    if (userIdArray[index] == userId) {
+                        duplicateCount++;
                     }
                 }
-                
-                userId = $(idCheck).prev().prev().val();
+
+                if (duplicateCount > 1) {
+                    return alert('다른 다중등록 ID와 중복됐습니다.');
+                }
+                  
                 var userIdSpecialCharacter = userId.search(/[~!@#$%^&*()<>?]/ig);
                 //아이디 특수문자 확인 및 아이디 값 전송 
                 if(userIdSpecialCharacter < 0) {
@@ -297,22 +309,23 @@
                         datatype:'json',
                         success:function(result){
                             alert(result.msg);
-                            $(idCheck).prev().val(result.check);
+                            $($idCheck).prev().val(result.check);
+                            return false;
                         },
                         error:function(request){
                             var error = request.responseJSON.errors;
-                            alert(error['userId']);
+                            return alert(error['userId']);
                         }
                     });
                 } else {
-                    alert('ID에 특문을 제외하고 입력해주세요.');
+                    return alert('ID에 특문을 제외하고 입력해주세요.');
                 }
             }
 
             //@brief    데이터 유효성 판단 및 전송
             function validate()
             {
-                for(var index = 0 ; index < $('#multipleCount').val() ; index++) {
+                for(var index = 0 ; index < $('table').length ; index++) {
 
                     //특수문자, 문자, 숫자 정규식 지정
                     var specialCharacter = /[`~!@#$%^&\*\(\)_\+=\{\}\[\]/;:'"<>,\|\.\?\s\\\-]/;

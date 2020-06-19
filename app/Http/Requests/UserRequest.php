@@ -27,7 +27,6 @@ class UserRequest extends FormRequest
      */
     public function rules(Request $request)
     {   
-        //dd($request->file());
         switch (Route::currentRouteName())
         {
 
@@ -52,7 +51,7 @@ class UserRequest extends FormRequest
                     'emailDomain.*' => [Rule::in(['naver.com', 'daum.com', 'gmail.com'])],
                     'agree.*' => 'required'
                 ];
-
+            
             //유저 업데이트
             case 'update':
                 return [

@@ -102,26 +102,7 @@ class NoticeBoard extends Model
             ];
             
         }
-        // dd($users);
         $result = $this->insert($users);
-        // $result = $this->insert ([
-        //     'user_id' => $user['userId'],
-        //     'user_pw' => $user['userPw'],
-        //     'name' => $user['name'],
-        //     'gender' => $user['gender'],
-        //     'age' => $user['age'],
-        //     'accumulated' => $user['accumulated'],
-        //     'email' => $user['email'],
-        //     'address_num' => $user['addressNum'],
-        //     'address_road' => $user['addressRoad'],
-        //     'address_detail' => $user['addressDetail'],
-        //     'etc' => $user['etc'],
-        //     'join_date' => $user['join_date'],
-        //     'marry' => $user['marry'],
-        //     'tel' => $user['tel'],
-        //     'file' => $user['file']
-        // ]);
-        
         return $result;
     }
 

@@ -89,7 +89,36 @@
             </form>
         </div>
 
+        @if ($errors->any())
+            <input type="hidden" id="validationErrors" value="{{ $errors->first() }}" />
+        @endif
+        @if (\Session::has('msg'))
+            <input type="hidden" id="userUpdateMsg" value="{{ Session::get('msg') }}" />
+        @endif
+
         <script>
+
+            window.onload = function () 
+            {
+                var errors = $('#validationErrors').val();
+                
+                var error = '';
+                if (errors != undefined) {
+                    alert(errors);
+                    errors = JSON.parse(errors);
+                    $.each(errors, function(index, value) {
+                        error = value;
+                        alert(error);
+                        return false;
+                    });
+                }
+                var userUpdateMsg = $('#userUpdateMsg').val();
+                if (userUpdateMsg != undefined) {
+                    alert(userUpdateMsg);
+                    $(location).attr('href', '/users');
+                    return false;
+                }
+            }
         
             //@brief    파일 이미지 보기
             //@param    input : 선택한 파일의 경로
@@ -173,125 +202,12 @@
                 var emailDomain = $('#emailDomain').val();
                 var file = $('#file').val();
                 
-                if (pw != '' || pwCheck != '') {
-                    //비밀번호 자릿수 및 공백, 영어 숫자 특문 혼용 확인, 일치 확인
-                    if (pw !== pwCheck && pw && pwCheck) {
-                        alert('비밀번호가 일치하지 않습니다.');
-                        return false;
-                    } else if (pw.length < 8 || pw.length > 20) {
-                        alert('비밀번호는 8자리 ~ 20자리 이내로 입력해주세요.');
-                        return false;
-                    } else if (pw.search(/\s/) != -1) {
-                        alert('비밀번호는 공백 없이 입력해주세요.');
-                        return false;
-                    } else if (pwNumberCheck < 0 || pwCharacterCheck < 0 || pwSpecialCharacterCheck < 0 ) {
-                        alert('영문,숫자, 특수문자를 혼합하여 입력해주세요.');
-                        return false;
-                    } 
-                }
-
-                //전화번호 빈값 및 자릿수 확인
-                if (tel.length <= 0) {
-                    alert('전화번호를 입력해주세요');
-                    return false;
-                } else if (tel.length < 8 || tel.length> 11) {
-                    alert('전화번호를 재대로 입력해주세요');
-                    return false;
-                } else if (telCharacterCheck > -1 || telSpecialCharacterCheck > -1 || telHangulCharacterCheck > -1) {
-                    alert('전화번호는 숫자만 입력해주세요');
-                    return false;
-                }
-
-                //이메일 빈값 확인
-                if(!email) {
-                    alert('이메일을 입력해주세요');
-                    return false;
-                } 
-
-                //이메일 도메인 확인
-                if (emailDomain == '선택') {
-                    alert('이메일 도메인을 선택해주세요.');
-                    return false;
-                }
-
-                //이메일 특문 및 공백 확인
-                if (emailSpecialCharacterCheck > -1 || emailHangulCharacterCheck > -1 || emailCharacterCheck == -1 ) {
-                    alert('정상적인 email을 입력해주세요');
-                    return false; 
-                } 
-
-                //적립금 빈값 확인
-                if (!accumulated) {
-                    alert('적립금 액수를 입력해주세요.');
-                    return false;
-                } else if (accumulatedCharacterCheck > -1 || accumulatedSpecialCharacterCheck > -1 || accumulatedHangulCharacterCheck > -1) {
-                    alert('적립금은 숫자만 입력해주세요');
-                    return false;
-                } else if (accumulated > 2100000000) {
-                    alert('적립금은 21억 이하로 입력해주세요');
-                    return false;
-                }
-
-                //주소 빈값 확인
-                if (!addressNum) {
-                    alert('우편번호를 입력해주세요');
-                    return false;
-                } else if (!addressRoad) {
-                    alert('도로명주소를 입력해주세요');
-                    return false;
-                } else if (!addressDetail) {
-                    alert('상세주소를 입력해주세요');
-                    return false;
-                } 
-
-                //주소 특문 확인
-                if (addressNumCharacterCheck > -1 || addressNumSpecialCharacterCheck > -1 || addressNumHangulCharacterCheck > -1) {
-                    alert('정상적인 우편번호를 입력해주세요');
-                    return false;
-                } else  if (addressRoadSpecialCharacterCheck > -1 || addressRoadHangulCharacterCheck > -1) {
-                    alert('정상적인 도로명주소를 입력해주세요');
-                    return false;
-                } else if (addressDetailSpecialCharacterCheck > -1 || addressDetailHangulCharacterCheck > -1) {
-                    alert('정상적인 상세주소를 입력해주세요');
-                    return false;
-                }
-
-                //파일 유무 확인
-                if(file != '') {
-                    var ext = file.split('.').pop().toLowerCase();
-                    //확장자명이 jpg나 png일떄만 실행
-                    if($.inArray(ext,['jpg','png']) == -1){
-                        alert('jpg, png 파일만 업로드 가능합니다.');
-                        return false;
-                    }
-                } 
+                
 
                 var userIndex = $('#userIndex').val();
-                var formData = new FormData($('#userUpdate')[0]);
 
-                //유저 업데이트
-                $.ajax({
-                    url:'/userUpdate/' + userIndex,
-                    type:'post',
-                    data:formData,
-                    datatype:'json',
-                    processData: false, 
-                    contentType: false,   
-                    success:function(result){
-                        alert(result.msg);
-                        $(location).attr('href', '/users');
-                        return false;
-                    },
-                    error:function(request){
-                        var errors = request.responseJSON.errors;
-                        var error = '';
-                        $.each(errors, function(index, value) {
-                            error = value;
-                            alert(error);
-                            return false;
-                        });
-                    }
-                });
+                $('#userUpdate').attr('action', '/userUpdate/' + userIndex);
+                $('#userUpdate').submit();
             }
 
             $(document).ready(function(){

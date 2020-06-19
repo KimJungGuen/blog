@@ -24,7 +24,7 @@ class UserController extends Controller
      * @return  view
     */
     public function index(Request $request) 
-    {
+    {   
         $searchData = $this->searchData($request);
         $usersData = $this->usersData($searchData);
         $averageData = $this->averageData(); 
@@ -156,7 +156,7 @@ class UserController extends Controller
     /**
      * @brief   유저 관리 > 유저 비밀번호 확인
      * @param   Request $request : 입력 데이터, int $userIndex : 해당 유저의 고유번호
-     * @return  json 'pwCheck' : $pwCheck
+     * @return  json 'pwCheck' : $pwCheck, 'userIndex' : $userIndex
     */
     public function userPwCheck(Request $request, int $userIndex)
     {
@@ -167,15 +167,19 @@ class UserController extends Controller
         //유저 비밀번호 확인
         $result = $userModel->userPwCheck($userIndex, $userPw);
         
-        //비밀번호가 맞을 경우 세션 생성
         if ($result) {
             $pwCheck = true;
-            $request->session()->put('userIndex', $userIndex);
+            return response()->json(array(
+                'pwCheck' => $pwCheck,
+                'userIndex' => $userIndex
+            ));
         } else {
             $pwCheck = false;
+            return response()->json(array(
+                'pwCheck' => $pwCheck,
+                'userIndex' => null
+            ));
         }
-      
-        return response()->json(array('pwCheck' => $pwCheck));
     }
 
 
@@ -187,14 +191,10 @@ class UserController extends Controller
     */
     public function userRegister(UserRequest $request)
     {   
-        //dump($request->all());
-        //dd(old('name[]'));
         $msg = '';
         $result = false;
         $multipleCount = $request->input('multipleCount');
-        $test=$request->toArray();
         $path = array();
-        //dd($request);
         try{
             for ($index = 0; $index < $multipleCount; $index++) {
                 
@@ -233,59 +233,47 @@ class UserController extends Controller
             $userModel = new NoticeBoard();
 
             $result = $userModel->userInsert($user);
-            if (isset($result)) {
+            if ($result) {
                 $msg = '회원등록에 성공했습니다.';
-                return view('RegisterPage', array(
-                    'msg' => $msg, 
-                    'registerCheck' => true
-                ));
+                return redirect('/user')->with('msg', $msg);
             }
         } catch (\Exception $e) {
             $msg = '회원등록에 실패했습니다.';
-            return view('RegisterPage', array(
-                'msg' => $msg, 
-                'registerCheck' => false
-            ));
+            return redirect('/user')->withErrors(array($msg));;
         }
     }
 
     /**
      * @brief   유저 관리 > 유저 수정 화면
-     * @param   Request $request : 세션, int $userIndex : 해당 유저의 고유번호
+     * @param   int $userIndex : 해당 유저의 고유번호
      * @return  view(array $userData)
     */
-    public function userUpdatePage(Request $request, int $userIndex)
+    public function userUpdatePage(int $userIndex)
     {
 
-        //세션 확인
-        if ($request->session()->has('userIndex')) {
+        //수정 요청을 한 유저의 데이터 표시
+        $userModel = new NoticeBoard();
+        $user = $userModel->getUser($userIndex);
+        $path = $user['file'];
+        $imgUrl = Storage::url($path);
 
-            //세션을 해제
-            $request->session()->forget('userIndex');
+        $userData = [
+            'userIndex' => $userIndex,
+            'email' => Str::of($user['email'])->before('@'),
+            'emailDomain' => Str::of($user['email'])->after('@'),
+            'tel' => preg_replace('/-/', '',$user['tel']),
+            'addressNum' => $user['address_num'],
+            'addressRoad' => $user['address_road'],
+            'addressDetail' => $user['address_detail'],
+            'etc' => $user['etc'],
+            'accumulated' => $user['accumulated'],
+            'imgUrl' => $imgUrl
+        ];
 
-            //수정 요청을 한 유저의 데이터 표시
-            $userModel = new NoticeBoard();
-            $user = $userModel->getUser($userIndex);
-            $path = $user['file'];
-            $imgUrl = Storage::url($path);
-
-            $userData = [
-                'userIndex' => $userIndex,
-                'email' => Str::of($user['email'])->before('@'),
-                'emailDomain' => Str::of($user['email'])->after('@'),
-                'tel' => preg_replace('/-/', '',$user['tel']),
-                'addressNum' => $user['address_num'],
-                'addressRoad' => $user['address_road'],
-                'addressDetail' => $user['address_detail'],
-                'etc' => $user['etc'],
-                'accumulated' => $user['accumulated'],
-                'imgUrl' => $imgUrl
-            ];
-
-            return view('userUpdate',['userData' => $userData]);
-        } else {
-            return redirect('/users');
-        }
+        return view('userUpdate',array(
+            'userData' => $userData
+        ));
+    
     }
 
     /**
@@ -357,15 +345,15 @@ class UserController extends Controller
 
             if (isset($result)) {
                 $msg = '업데이트에 성공했습니다.';
+                return redirect('/userUpdate/' . $userIndex)->with('msg', $msg);
             } else {
                 throw new \Exception('업데이트에 실패했습니다.');
             }
 
         } catch (\Exception $e) {
             $msg = $e->getMessage();
+            return redirect('/userUpdate/' . $userIndex)->withErrors(array($msg));
         }
-
-        return response()->json(array('msg' => $msg, 'result' => $result));
     }
 
     /**
@@ -405,16 +393,16 @@ class UserController extends Controller
                 break;
             case 10:
                 if (preg_match('/^(02)/', $telNumber)) {
-                    $tel = preg_replace('/([0-9]{3})([0-9]{3})([0-9]{4})/', '$1-$2-$3', $telNumber);
-                } else {
                     $tel = preg_replace('/([0-9]{2})([0-9]{4})([0-9]{4})/', '$1-$2-$3', $telNumber);
+                } else {
+                    $tel = preg_replace('/([0-9]{3})([0-9]{3})([0-9]{4})/', '$1-$2-$3', $telNumber);
                 }
                 break;
             case 9:
                 $tel = preg_replace('/([0-9]{5})([0-9]{4})/', '$1-$2', $telNumber);
                 break;
             case 8:
-                if (preg_match('/^00[0-9]/', $telNumber)) {
+                if (preg_match('/^(00[0-9])/', $telNumber)) {
                     $tel = preg_replace('/([0-9]{3})([0-9]{1})([0-9]{4})/', '$1-$2-$3', $telNumber);
                 } else {
                     $tel = preg_replace('/([0-9]{4})([0-9]{4})/', '$1-$2', $telNumber);

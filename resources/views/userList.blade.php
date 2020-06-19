@@ -88,12 +88,11 @@
                 </table>
             </form>
         </div>
-
         <div>
             <p style="position:absolute; height:3.3%; top:40%; left:20%;" > 조회된 건 수 : {{$users->total()}}  </p>
             <input type="button" class="btn btn-primary" style="position:absolute; top:40%; left:87%; height:3.5%;" value="유저등록" onclick="location.href='/user'"/>
             <input type="button" class="btn btn-danger" style="position:absolute; top:40%; left: 92%; height: 3.5%;" value="유저탈퇴" onclick="userDelete()"/>
-
+            <input type="hidden" id="userUpdateIndex" name="userUpdateIndex" value="" />
             <select style="position:absolute; height:3.3%; top:40%; left:98%;" id="pageLimit" name="pageLimit" onchange="changePage();">
                 @for($i = 1 ; $i <= 10 ; $i++)
                     @if($i == $searchData['searchPageLimit'])
@@ -128,7 +127,7 @@
                         @if(isset($users) && count($users) > 0)
                             @foreach($users as $index => $user)
                                 <tr name="user" onclick="userPwCheck('{{$user->index}}');" >
-                                    <td onclick="event.cancelBubble=true"><input class="deleteBox" type="checkbox" value="{{$user->index}}"></td>
+                                    <td onclick="event.cancelBubble=true"><input class="deleteBox" type="checkbox" value="{{$user->index}}"></td> 
                                     <td>{{ $loop->iteration + $users->perPage() * ($users->currentPage() - 1) }}</td>
                                     <td>{{ $user->index }}</td>
                                     <td>{{ $userStatus[$index] }}</td>
@@ -140,7 +139,10 @@
                                     <td>{{ $user->email }}</td>
                                     <td>{{ $user->accumulated }}</td>
                                     <td>{{ $user->join_date }}</td>
-                                    <td>이동</td>
+                                    <td>
+                                        <button type="button" class="btn" onclick="event.cancelBubble=true" >▲</button>
+                                        <button type="button" class="btn" onclick="event.cancelBubble=true">▼</button>
+                                    </td>
                                     <td>순서변경</td>
                                 </tr>
                             @endforeach
@@ -221,7 +223,6 @@
         </div>
         @csrf
         <script>
-
             //@brief    유저 상태 체크박스 조작
             function statusCheckBox() {
                 var $userAll = $('#searchUserAll');
@@ -272,27 +273,32 @@
                         },
                         datatype:'json',
                         success:function(result){
-                            if (result.pwCheck) {
+                            if (result.pwCheck && result.userIndex) {
                                 alert('비밀번호가 일치합니다.');
-                                $(location).attr('href', '/userUpdate/' + userIndex);
+                                $('#userUpdateIndex').val(result.userIndex);
+                                var userUpdateIndex = $('#userUpdateIndex').val();
+                                $(location).attr('href', '/userUpdate/' + userUpdateIndex);
+                                return false;
                             } else {
                                 alert('비밀번호가 틀렸습니다.');
-
+                                return false;
                             }
                         },
                         error:function(request,sts,error){
                             var error = request.responseJSON.errors;
                             alert(error['userPw']);
+                            return false;
                         }
                     });
                 } else if (userPw == '') {
                     alert('비밀번호를 입력해주세요.');
+                    return false;
                 }
             }
 
             //@brief    유저 검색
             function searchUsers() {
-            var specialCharacter = /[~!@#$%^&*()_+-=\[\]\\{}\|;:'"<>/?]/g;
+            var specialCharacter = /[`~!@#$%^&\*\(\)_\+=\{\}\[\]/;:'"<>,\|\.\?\s\\\-]/;
                 
                 //첫 번쨰 검색어 특수문자 확인
                 var searchFirstWord = $('#searchFirstWord').val();
@@ -357,6 +363,7 @@
                 var yearCheck = (beforeYear - afterYear < 0) ? false : true;
                 var monthCheck = (beforeMonth - afterMonth < 0) ? false : true;
                 var dayCheck = (beforeDay - afterDay < 0) ? false : true;
+
                 if (yearCheck) {
                     if (monthCheck) {
                         if (dayCheck == false && beforeMonth - afterMonth == 0 && beforeYear - afterYear == 0) {
@@ -374,8 +381,10 @@
 
                 //pageLimit 값 전송
                 $('#searchPageLimit').attr('value',$('#pageLimit option:selected').val());
+
                 if (textCheckFirst == -1 && textCheckSecond == -1) {
                    $('#searchForm').submit();
+                   return false;
                 } else {
                     alert('검색어를 재대로 입력해주세요.');
                     return false;
@@ -450,8 +459,10 @@
                 //현재 queryString에 따라 전송 데이터 구분 
                 if (getValue.length > 9) {
                     $(location).attr('href', '/users?' + searchQueryString );
+                    return false;
                 } else {
                     $(location).attr('href', '/users?' + queryString);
+                    return false;
                 }
             }
 
@@ -482,8 +493,10 @@
                                 if (result.deleteRow) {
                                     alert(result.msg);
                                     $(location).attr('href', '/users');
+                                    return false;
                                 } else {
                                     alert('이미 휴면이거나 없는 유저입니다.');
+                                    return false;
                                 }
                             },
                                 error:function(request,sts,error){
@@ -492,8 +505,13 @@
                         });
                     } else { //선택된 유저가 없을 경우
                         alert('유저를 선택해주세요.');
+                        return false;
                     }
                 }
+            }
+
+            function histroyDenied() {
+
             }
         </script>
     </body>
