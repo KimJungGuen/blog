@@ -67,12 +67,39 @@ class NoticeBoard extends Model
      * @param   void
      * @return  Collection $result
     */
-    public function getUser(int $userIndex)
+    public function getUserInfo(int $userIndex)
     {
         $user = $this->withTrashed()
                      ->firstWhere('index', $userIndex);
 
         return $user;
+    }
+
+    /**
+     * @brief   유저 마지막 순번 조회
+     * @param   void
+     * @return  int $userN 
+    */
+    public function getUserLastOrder()
+    {
+        $userNo = $this->max('no');
+
+        return $userNo;
+    }
+
+    /**
+     * @brief   유저 순번 변경
+     * @param   int $userIndex, int $userNo : 유저 고유 번호, 유저 순번
+     * @return  int $result
+    */
+    public function userOrderChange(int $userIndex, int $userOrder)
+    {
+        $result = $this->withTrashed()
+                       ->where('index', $userIndex)
+                       ->update(['no' => $userOrder]);
+                       
+
+        return $result;
     }
 
     /**
@@ -98,6 +125,7 @@ class NoticeBoard extends Model
                 'join_date' => $user['join_date'],
                 'marry' => $user['marry'][$index],
                 'tel' => $user['tel'][$index],
+                'no' => $user['userOrder'][$index],
                 'file' => (isset($user['file'][$index])) ? $user['file'][$index] : NULL
             ];
             
@@ -225,6 +253,7 @@ class NoticeBoard extends Model
                       })
                       ->searchDateFormat($search)
                       ->orderBy($search['sortIndex'], $search['orderBy']) //검색 결과 정렬
+                      ->orderBy('index', 'asc')
                       ->paginate($search['searchPageLimit']);   
 
         return $users;
@@ -235,7 +264,7 @@ class NoticeBoard extends Model
      * @param   array $userIndex : 유저 고유 번호 []
      * @return  int $result
     */
-    public function deleteUser(array $userIndex)
+    public function sleepUser(array $userIndex)
     {
       $result = $this->whereIn('index', $userIndex)->Delete();
 
@@ -247,16 +276,31 @@ class NoticeBoard extends Model
      * @param   array $userIndex : 유저 고유 번호 []
      * @return  int $result
     */
-    public function deleteCheck(array $userIndex)
+    public function sleepUserCheck(array $userIndex)
     {
         $result = $this->withTrashed()->whereIn('index', $userIndex)->whereNotNull('deleted_at')->count();
 
         return $result;
     }
 
+    /**
+     * @brief   휴면 유저 순번 재할당
+     * @param   int $userIndex : 유저 고유 번호
+     * @return  int $result
+    */
+    public function sleepUserOrderChange($userIndex)
+    {
+        $result = $this->withTrashed()
+                       ->where('index', $userIndex)
+                       ->update(['no' => 99999999]);
+
+        return $result;
+    }
+
+
 
     /**
-     * @brief   유저 관리 > 유저 통계
+     * @brief   유저 리스트 > 유저 통계
      * @param   void
      * @return  Collection $result
     */

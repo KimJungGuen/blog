@@ -87,8 +87,8 @@
                         <tr>
                             <td>결혼 여부</td>
                             <td>
-                                <input type="radio" class="findMarry"  name="marry[{{ $index }}]" value="S" @if (old('marry.' . $index) == 'S') checked @endif/>미혼
-                                <input type="radio" name="marry[{{ $index }}]" value="M" @if (old('marry.' . $index) == 'M') checked @endif/>기혼
+                                <input type="radio" class="findMarry" name="marry_{{ $index }}" value="S" @if (old('marry.' . $index) == 'S') checked @endif/>미혼
+                                <input type="radio" class="findMarry" name="marry_{{ $index }}" value="M" @if (old('marry.' . $index) == 'M') checked @endif/>기혼
                             </td>
                         </tr>
                         <tr>
@@ -134,43 +134,34 @@
             <input type="hidden" id="userRegisterMsg" value="{{ \Session::get('msg') }}" />
         @endif
         <script>
-
+            //@brief 테이블 복제
             function duplicate()
             {
                 var index = $('table').length
                 if (index < 3) {
-                    marrySingleCheck = $('.findMarry').eq(0).prop('checked');
-                    marryCheck = $('.findMarry').eq(0).next().prop('checked');
-
                     $afterMarry = $('input[name=marray]:checked');
-                    $table = $('#createTable').clone(true).appendTo($('#userCreate'));
-
+                    $table = $('#createTable').clone(true);
+                    $($table).find('input.findMarry').attr('name', 'marry_' + index);
+                    $($table).find('input.findMarry').prop('checked', false);
+                    
+                    $($table).appendTo($('#userCreate'));
                     $('#multipleCount').attr('value', Number(index) + 1);
                     $('.addressBtn').eq(index).attr('id', index);
                     $('.idStatus').eq(index).val(false);
-                    $('.findMarry').eq(index).attr('name', 'marry[' + index + ']');
-                    $('.findMarry').eq(index).next().attr('name', 'marry[' + index + ']');
                     $('.file').eq(index).attr('name', 'file_' + index);
-
-                    if (marrySingleCheck) {
-                        $('.findMarry').eq(0).prop('checked', true);
-                    } else if(marryCheck) {
-                        $('.findMarry').eq(0).next().prop('checked', true);
-                    }
-
                     Initialization(index);
                 }
             }
-
+            //@brief 복제된 테이블 삭제
             function duplicateDelete()
             {
                 var index = $('table').length;
-
                 if (index > 1) {
                     $('.createTable').eq(index-1).remove();
+                    $('#multipleCount').val(Number(index) - 1);
                 }
             }
-
+            //@brief 복제 테이블 초기화
             function Initialization(index)
             {
                 $('.name').eq(index).val('');
@@ -189,11 +180,8 @@
                 $('.file').eq(index).val('');
                 $('.preImg').eq(index).attr('src', '');
                 $('.etc').eq(index).val('');
-                $('.findMarry').eq(index).prop('checked', false);
-                $('.findMarry').eq(index).next().prop('checked', false);
             }
-
-
+            //에러 및 성공, 실패 메시지 출력
             window.onload = function () 
             {
                 var errors = $('#validationErrors').val();
@@ -202,16 +190,13 @@
                     alert(errors);
                     return false;
                 }
-
                 var userRegisterMsg = $('#userRegisterMsg').val();
-
                 if (userRegisterMsg != undefined) {
                     alert(userRegisterMsg); 
                     $(location).attr('href', '/users');
                     return false;
                 }
             }
-
             /**
              * @brief   필드 빈 값 확인
              * @param   mixed value
@@ -230,27 +215,25 @@
             }
             
             //@brief    아이디 중복확인 초기화
-            //@param    text   input userId
+            //@param    $('#idCheck')
             function idCheckClear(input) 
             {
-                $(input).next().val(false);
+                $(input).closest('td').find('input#idStatus').val(false);
             }
-
             //@brief    유저 파일 업로드시 미리보기
-            //@param    file   input file
+            //@param    $('.file').ea()
             function filePreView(input) 
             {
                 if (input.files && input.files[0]) {
                     var reader = new FileReader();
                     reader.readAsDataURL(input.files[0]);
-
                     reader.onload = function (e) {
                         $(input).next().attr('src', e.target.result);
                     }
                 }
             }
-
             //@brief    다음 주소 찾기 api
+            //@param    $('.address').eq()
             function addressModal(input) 
             {
                 var index = $(input).attr('id');
@@ -268,30 +251,26 @@
                 });
             }
             
-
             //@brief    유저 아이디 중복 확인
+            //@param    $('.idCheck').eq()
             function userIdCheck($idCheck)
             {
                 var userId = $($idCheck).closest('td').find('input#userId').val();
+                var $userIdCheck = $($idCheck).closest('td').find('input#idStatus');
                 var userIdArray = [];
                 var limit = $('table').length;
                 var duplicateCount = 0;
-
-
                 for (var index = 0; index < limit; index++) {
                     userIdArray[index] = $('.userId').eq(index).val();
                 }
-
                 if(userId == '') {
                     return alert('Id를 입력해주세요.');
                 }
-
                 for (var index = 0; index < limit; index++) {
                     if (userIdArray[index] == userId) {
                         duplicateCount++;
                     }
                 }
-
                 if (duplicateCount > 1) {
                     return alert('다른 다중등록 ID와 중복됐습니다.');
                 }
@@ -309,7 +288,7 @@
                         datatype:'json',
                         success:function(result){
                             alert(result.msg);
-                            $($idCheck).prev().val(result.check);
+                            $userIdCheck.val(result.check);
                             return false;
                         },
                         error:function(request){
@@ -321,21 +300,20 @@
                     return alert('ID에 특문을 제외하고 입력해주세요.');
                 }
             }
-
             //@brief    데이터 유효성 판단 및 전송
             function validate()
             {
+                //특수문자, 문자, 숫자 정규식 지정
+                var specialCharacter = /[`~!@#$%^&\*\(\)_\+=\{\}\[\]/;:'"<>,\|\.\?\s\\\-]/;
+                var character = /[a-z]/ig;
+                var number = /[0-9]/g;
+                var Hangul = /[ㄱ-ㅎㅏ-ㅣ]/;
+                var marrySingleNumber = 0;
+                var marryNumber = 1;
                 for(var index = 0 ; index < $('table').length ; index++) {
-
-                    //특수문자, 문자, 숫자 정규식 지정
-                    var specialCharacter = /[`~!@#$%^&\*\(\)_\+=\{\}\[\]/;:'"<>,\|\.\?\s\\\-]/;
-                    var character = /[a-z]/ig;
-                    var number = /[0-9]/g;
-                    var Hangul = /[ㄱ-ㅎㅏ-ㅣ]/;
-
-                    //search() 검사하는 값이 없을경우 -1을 반환
-                    //비밀번호, 비밀번호 확인 숫자, 문자, 특수문자 확인
                     
+                    //search() 검사하는 값이 없을경우 -1을 반환
+                    //비밀번호, 비밀번호 확인 숫자, 문자, 특수문자 확인    
                     var $pw = $('.userPw').eq(index);
                     var $pwCheck = $('.userPwCheck').eq(index);
                     var pwNumberCheck = $pw.val().search(number);
@@ -393,15 +371,23 @@
                     var addressDetail = $('.addressDetail').eq(index).val();
                     var addressDetailSpecialCharacterCheck = addressDetail.search(/[`~!@#$%^&\*\+=\{\};:'<>"\/\?\\\|]/g);
                     var addressDetailHangulCharacterCheck = addressDetail.search(Hangul);
-
                     var idStatus = $('.idStatus').eq(index).val();
                     var gender = $('.gender').eq(index).val();
                     var emailDomain = $('.emailDomain').eq(index).val();
-                    var $marrySingleCheck = $('.findMarry').eq(index).prop('checked');
-                    var $marryCheck = $('.findMarry').eq(index).next().prop('checked');
                     var file = $('.file').eq(index).val();
+                    var marrySingleCheck = false;
+                    var marryCheck = false;
+                    
+                    if (index == 0) {
+                        marrySingleCheck = $('.findMarry').eq(Number(index) + marrySingleNumber).prop('checked');
+                        marryCheck = $('.findMarry').eq(Number(index) + marryNumber).prop('checked');
+                    } else if (index > 0) {    
+                        marrySingleCheck = $('.findMarry').eq(Number(index) + marrySingleNumber).prop('checked');
+                        marryCheck = $('.findMarry').eq(Number(index) + marryNumber).prop('checked');
+                    }
 
-
+                    marrySingleNumber++;
+                    marryNumber++;
 
                     //이름 빈값 확인
                     if (name.length < 2) 
@@ -524,9 +510,13 @@
                     } else if (accumulated > 2100000000) {
                         alert('21억 이하로 입력해주세요.');
                         return false;
+                    } else if (accumulated.search(/^0/) > -1) {
+                        alert('맨 앞자리 0은 제외해 주세요');
+                        return false;
                     }
 
-                    if ($marrySingleCheck == false && $marryCheck == false) {
+                    //결혼상태 확인
+                    if (marrySingleCheck == false && marryCheck == false) {
                         alert('결혼 상태를 체크해주세요')
                         return false;
                     }
@@ -577,7 +567,7 @@
 
                 $('.form').submit();
             }
-
+            
             $(document).ready(function()
             {
                 //@brief    숫자필드에 문자입력시 공백

@@ -67,7 +67,18 @@
                         <tr>
                         <td class="table-primary">정렬</td>
                         <td>
+                       
                             <select id="sortIndex" name="sortIndex" onchange="changePage();">
+                                @if(($searchData['userStatus'] != 'sleep') 
+                                    && ($searchData['gender'] == 'all') 
+                                    && (is_null($searchData['filterFirst']))
+                                    && (is_null($searchData['filterSecond']))
+                                    && (is_null($searchData['searchFirstWord']))
+                                    && (is_null($searchData['searchSecondWord']))
+                                    && ($searchData['searchDateFirst'] == now()->addMonth(-1)->format('Y-m-d'))
+                                    && ($searchData['searchDateSecond'] == now()->format('Y-m-d')))
+                                    <option value="no" @if ($searchData['sortIndex'] == 'no') selected @endif>순번</option>
+                                @endif
                                 <option value="index" @if ($searchData['sortIndex'] == 'index') selected @endif>번호</option>
                                 <option value="accumulated" @if ($searchData['sortIndex'] == 'accumulated') selected @endif>적립금</option>
                                 <option value="age" @if ($searchData['sortIndex'] == 'age') selected @endif> 나이</option>
@@ -104,11 +115,12 @@
             </select>
 
             <form id="ordinaryForm" name="ordinary" class="form" method="get" action="/users">
+                @csrf
                 <table class="table table-bordered text-center">
                     <thead>
                         <tr>
                             <th>삭제</th>
-                            <th>순번</th>
+                            <th>순서</th>
                             <th>번호</th>
                             <th>상태</th>
                             <th>이름</th>
@@ -126,10 +138,14 @@
                     <tbody>
                         @if(isset($users) && count($users) > 0)
                             @foreach($users as $index => $user)
-                                <tr name="user" onclick="userPwCheck('{{$user->index}}');" >
+                                <tr id="{{ 'user_' . $loop->iteration }}" name="user" onclick="userPwCheck('{{$user->index}}');" >
                                     <td onclick="event.cancelBubble=true"><input class="deleteBox" type="checkbox" value="{{$user->index}}"></td> 
                                     <td>{{ $loop->iteration + $users->perPage() * ($users->currentPage() - 1) }}</td>
-                                    <td>{{ $user->index }}</td>
+                                    <td>
+                                        {{ $user->index }}
+                                        <input type="hidden" name="userIndex[]" value="{{ $user->index }}" />
+                                        <input type="hidden" name="userOrder[]" value="{{ $user->no }}" />
+                                    </td>
                                     <td>{{ $userStatus[$index] }}</td>
                                     <td>{{ $user->name }}</td>
                                     <td>{{ $user->user_id }}</td>
@@ -139,9 +155,11 @@
                                     <td>{{ $user->email }}</td>
                                     <td>{{ $user->accumulated }}</td>
                                     <td>{{ $user->join_date }}</td>
-                                    <td>
-                                        <button type="button" class="btn" onclick="event.cancelBubble=true" >▲</button>
-                                        <button type="button" class="btn" onclick="event.cancelBubble=true">▼</button>
+                                    <td onclick="event.cancelBubble=true">
+                                    @if($user->no != 99999999 && $searchData['sortIndex'] == 'no')
+                                        <button type="button" class="upBtn" name="upBtn" class="btn" onclick="upUserList(this)" >▲</button>
+                                        <button type="button" class="downBtn" name="downBtn" class="btn" onclick="downUserList(this)">▼</button>
+                                    @endif
                                     </td>
                                     <td>순서변경</td>
                                 </tr>
@@ -221,30 +239,136 @@
                 </tbody>
             </table>
         </div>
-        @csrf
+        
         <script>
+            //window.location.hash="no-back-button";
+            // history.pushState(null, null, location.href);
+            // window.onpopstate = function(event) { history.go(1); };
+            // history.pushState(null, document.title, location.href);
+        
+           
+            // history.pushState(null, null, location.href);
+            // history.back();
+            // history.forward();
+            // window.onpopstate = function () 
+            // { 
+            //     afterUrl = document.referrer.split('/');
+            //     alert(afterUrl);
+            //     if (afterUrl.indexOf('userUpdate') > -1) {
+            //         history.go(1); 
+            //     }
+            // };
+            
+            //@brief    유저 리스트 위로 이동
+            //@param    $('input[name=upBtn]')
+            function upUserList(userListBtn)
+            {
+                userList = $(userListBtn).closest('tr');
+                prevUserList = $(userList).prev();
+                var userIndex = [];
+                var userOrder = [];
+
+                if($(prevUserList).find('.upBtn').length == 1) {
+                    $(prevUserList).before(userList);
+                } else {
+                    alert('더 이상 위로 이동 할 수 없습니다.');
+                    return false;
+                }
+
+                limit = $("input[name='userIndex[]']").length
+                if (limit > 0) {
+                    for (var index = 0; index < limit; index++) {
+                        userIndex[index] = $("input[name='userIndex[]']").eq(index).val();
+                        userOrder[index] = $("input[name='userOrder[]']").eq(index).val();
+                    }
+                }
+
+                listChange(userIndex, userOrder);
+            }
+
+            //@brief    유저 리스트 아래로 이동
+            //@param    $('input[name=downBtn]')
+            function downUserList(userListBtn)
+            {
+                var userList = $(userListBtn).closest('tr');
+                var nextUserList = $(userList).next();
+                var userIndex = [];
+                var userOrder = [];
+
+                if($(nextUserList).find('.downBtn').length == 1) {
+                    $(nextUserList).after(userList);
+                } else {
+                    alert('더 이상 아래로 이동 할 수 없습니다.');
+                    return false;
+                }
+                
+                limit = $("input[name='userIndex[]']").length
+                if (limit > 0) {
+                    for (var index = 0; index < limit; index++) {
+                        userIndex[index] = $("input[name='userIndex[]']").eq(index).val();
+                        userOrder[index] = $("input[name='userOrder[]']").eq(index).val();
+                    }
+                }
+
+                listChange(userIndex, userOrder);
+            }
+
+            //@brief    이동된 유저 리스트 전송 및 저장
+            //param     array userIndex : 유저 고유 번호,
+            //          array userNo : 유저 순번
+            function listChange(userIndex, userOrder)
+            {
+                $.ajax({
+                    url:'/userNoSave',
+                    type:'put',
+                    data:{
+                        'userIndex':userIndex,
+                        'userOrder':userOrder,
+                        '_token':$('input[name=_token]').val()
+                    },
+                    datatype:'json',
+                    success:function(result){
+                        alert(result.msg);
+                        if (result.updateCheck) {
+                            $(location).attr('href', '/users');
+                        }
+                        return false;
+                    },
+                    error:function(result,sts,error){
+                        alert('순번 저장에 실패했습니다.');
+                        return false;
+                    }
+                    
+                });
+            }
+
             //@brief    유저 상태 체크박스 조작
             function statusCheckBox() {
                 var $userAll = $('#searchUserAll');
                 var $userActive = $('#searchUserActive');
                 var $userSleep = $('#searchUserSleep');
+
                 //사용 혹은 휴면 버튼 클릭시 모든계정 버튼 비활성화           
                 if (event.target.id != 'searchUserAll') {
                     $userAll.prop('checked', false);
                 }
+
                 //사용 또는 휴면 버튼과 모든계정 버튼을 누를경우 사용 또는 휴면 버튼 비활성화 
                 if ($userActive.prop('checked') && $userAll.prop('checked')) {
                     $userActive.prop('checked', false);
                 } 
+
                 if ($userSleep.prop('checked') &&  $userAll.prop('checked')) {
                     $userSleep.prop('checked', false);
                 }
+
                 //사용 버튼과 휴면 버튼을 둘다 누를 경우 둘다 비활성화 모든 계정 버튼 활성화 
                 if ($userActive.prop('checked') && $userSleep.prop('checked')) {
                     $userAll.prop('checked', true);
                     $userActive.prop('checked', true);
                     $userSleep.prop('checked', true);
                 }
+
                 //모든 버튼 클릭시 전부 살아있을경우 비활성화
                 if (event.target.id == 'searchUserAll' && $userActive.prop('checked') && $userSleep.prop('checked') && $userAll.prop('checked')) {
                     $userAll.prop('checked', false);
@@ -277,7 +401,7 @@
                                 alert('비밀번호가 일치합니다.');
                                 $('#userUpdateIndex').val(result.userIndex);
                                 var userUpdateIndex = $('#userUpdateIndex').val();
-                                $(location).attr('href', '/userUpdate/' + userUpdateIndex);
+                                location.replace('/userDetail/' + userUpdateIndex);
                                 return false;
                             } else {
                                 alert('비밀번호가 틀렸습니다.');
@@ -295,7 +419,6 @@
                     return false;
                 }
             }
-
             //@brief    유저 검색
             function searchUsers() {
             var specialCharacter = /[`~!@#$%^&\*\(\)_\+=\{\}\[\]/;:'"<>,\|\.\?\s\\\-]/;
@@ -329,7 +452,6 @@
                     alert('첫번째 검색어를 입력해주세요.');
                     return false;
                 }
-
                 if (filterSecond == false && searchSecondWord) {
                     alert('두번쨰 검색 필터를 선택해주세요');
                     return false;
@@ -342,7 +464,7 @@
                 if (userAll == false && userActive == false && userSleep == false) {
                     alert('검색할 계정 상태를 최소 하나는 골라주세요.');
                     return false;
-                }
+                } 
 
                 //시작일이나 종료일 확인
                 if (searchDateAfter == '' || searchDateBefore == '') {
@@ -353,6 +475,7 @@
                 //시작일 종료일 연산
                 var dateAfter = searchDateAfter.split('-');
                 var dateBefore = searchDateBefore.split('-');
+
                 var afterYear = dateAfter[0];
                 var beforeYear = dateBefore[0];
                 var afterMonth = dateAfter[1];
@@ -360,6 +483,7 @@
                 var afterDay = dateAfter[2];
                 var beforeDay = dateBefore[2];
                 var dateAlert = function() {alert('시작일을 종료일보다 앞 선 날짜로 설정해주세요.')};
+
                 var yearCheck = (beforeYear - afterYear < 0) ? false : true;
                 var monthCheck = (beforeMonth - afterMonth < 0) ? false : true;
                 var dayCheck = (beforeDay - afterDay < 0) ? false : true;
@@ -377,6 +501,40 @@
                 } else { 
                     dateAlert()
                     return false;
+                }
+                
+
+                //시작 기준일 구하기
+                var today = new Date();
+                
+                var year = today.getFullYear();
+                //시작일 월 설정
+                var defaultAfterMonth = (today.getMonth()+1 < 10) ? '0' + (today.getMonth()) : (today.getMonth()+1);
+                //1월일 경우 작년으로 바꾸고 12월로 해준다.
+                if (today.getMonth() == 0) {
+                    year = today.getFullYear()-1;
+                    defaultAfterMonth = today.getMonth()+12;
+                }
+
+                //종료일 월 설정
+                var defaultBeforeMonth = (today.getMonth()+1 < 10) ? '0' + (today.getMonth()+1) : (today.getMonth()+1);
+                var day = (today.getDate() < 10) ? '0' + today.getDate() : today.getDate();
+
+                if( ((filterFirst && searchFirstWord) 
+                    || (filterSecond && searchSecondWord)
+                    || ($('input[name=gender]:checked').val() != 'all')
+                    || (year != afterYear)
+                    || (year != beforeYear)
+                    || (defaultAfterMonth != afterMonth)
+                    || (defaultBeforeMonth != beforeMonth)
+                    || (day != afterDay)
+                    || (day != beforeDay))
+                    && ($('#sortIndex').val() == 'no')
+                ) {
+          
+                        alert('순번 정렬은 기본 조건에서 만 검색가능합니다.');
+                        return false;
+                    
                 }
 
                 //pageLimit 값 전송
@@ -396,10 +554,8 @@
                 var today = new Date();
                 
                 var year = today.getFullYear();
-
                 //시작일 월 설정
                 var monthAfter = (today.getMonth()+1 < 10) ? '0' + (today.getMonth()) : (today.getMonth()+1);
-
                 //1월일 경우 작년으로 바꾸고 12월로 해준다.
                 if (today.getMonth() == 0) {
                     year = today.getFullYear()-1;
@@ -452,7 +608,9 @@
 
                 var sortIndex = $('#sortIndex option:selected').val();
                 var orderBy = $('#orderBy option:selected').val();
+
                 $('#searchPageLimit').attr('value',$('#pageLimit option:selected').val());
+
                 var queryString = 'searchPageLimit=' + $('#searchPageLimit').val() + '&sortIndex=' + sortIndex + '&orderBy=' + orderBy;
                 searchQueryString = 'searchPageLimit=' + $('#searchPageLimit').val() + searchQueryString + '&sortIndex=' + sortIndex + '&orderBy=' + orderBy;
 
@@ -466,7 +624,7 @@
                 }
             }
 
-            //@brief    유저 삭제
+            //@brief    유저 휴면
             function userDelete() {
                 var deleteCheck = confirm('선택된 유저를 삭제하시겠습니까?');
                 var userIndex = {};
@@ -482,7 +640,7 @@
                     //선택된 유저가 있을경우 해당유저 index번호를 보내서 soft delete처리
                     if (indexValueCheck) {
                         $.ajax({
-                            url:'/userDelete',
+                            url:'/userSleep',
                             type:'delete',
                             data:{
                                 'userIndex':userIndex,
@@ -508,10 +666,6 @@
                         return false;
                     }
                 }
-            }
-
-            function histroyDenied() {
-
             }
         </script>
     </body>

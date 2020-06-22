@@ -98,6 +98,7 @@
 
         <script>
 
+            //@brief    에러 및 성공, 실패 메시지 표시
             window.onload = function () 
             {
                 var errors = $('#validationErrors').val();
@@ -115,7 +116,7 @@
                 var userUpdateMsg = $('#userUpdateMsg').val();
                 if (userUpdateMsg != undefined) {
                     alert(userUpdateMsg);
-                    $(location).attr('href', '/users');
+                    location.replace('/users');
                     return false;
                 }
             }

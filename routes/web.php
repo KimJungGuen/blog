@@ -31,8 +31,10 @@ Route::post('/userIdCheck', 'UserController@userIdCheck')->name('userIdCheck');
 //유저 pw 체크요청 ajax
 Route::post('/userPwCheck/{userIndex}', 'UserController@userPwCheck')->name('userPwCheck');
 //유저 Update페이지
-Route::get('/userUpdate/{userIndex}', 'UserController@userUpdatePage')->middleware(History::class);
+Route::get('/userDetail/{userIndex}', 'UserController@userDetail')->middleware(History::class);
 //유저 업데이트 요청
 Route::put('/userUpdate/{userIndex}', 'UserController@userUpdate')->name('update');
 //유저 삭제
-Route::delete('/userDelete', 'UserController@userDelete');
+Route::delete('/userSleep', 'UserController@userSleep');
+//유저 순번 저장
+Route::put('/userNoSave', 'UserController@userOrderChange');
