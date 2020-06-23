@@ -135,7 +135,6 @@ class UserController extends Controller
             }
         } catch (\Exception $e) {
             $msg = '회원등록에 실패했습니다.';
-            dd($e->getMessage());
             return redirect('/user')->withErrors(array($msg));;
         }
     }
@@ -153,7 +152,7 @@ class UserController extends Controller
     public function userUpdate(UserRequest $request, int $userIndex)
     {
         $msg = '';
-        $result = 0;
+        $updateCheck = false;
         try{
             $userModel = new NoticeBoard();
             $user = $userModel->getUserInfo($userIndex);
@@ -211,16 +210,17 @@ class UserController extends Controller
 
             try {
                 $result = $userModel->userUpdate($userData);
+                $updateCheck = true;
                 $msg = '업데이트에 성공했습니다.';
-                return redirect('/userDetail/' . $userIndex)->with('msg', $msg);
+                return response()->json(array('msg' => $msg, 'updateCheck' => $updateCheck));
             } catch (\Exception $e) {
                 $msg = '업데이트에 실패했습니다.';
-                return redirect('/userDetail/' . $userIndex)->withErrors(array($msg));
+                return response()->json(array('msg' => $msg, 'updateCheck' => $updateCheck));
             }
 
         } catch (\Exception $e) {
             $msg = $e->getMessage();
-            return redirect('/userDetail/' . $userIndex)->withErrors(array($msg));
+            return response()->json(array('msg' => $msg, 'updateCheck' => $updateCheck));
         }
     }
 
@@ -257,7 +257,6 @@ class UserController extends Controller
                 }
             } 
         } catch(\Exception $e) {
-            dd($e->getMessage());
             $msg = '회원탈퇴가 실패했습니다.';
         }
 
@@ -298,7 +297,7 @@ class UserController extends Controller
             'searchDateSecond' => $request->input('searchDateSecond', $defaultEndDay), //날짜 검색 종료일
             'gender' => $request->input('gender', 'all'), //성별
             'userStatus' => $searchUserStatus, //유저 상태
-            'sortIndex' => $request->input('sortIndex', 'no'), //정렬 기준
+            'sortIndex' => $request->input('sortIndex', 'order'), //정렬 기준
             'orderBy' => $request->input('orderBy', 'asc'),  //정렬 방식
             'page' => $request->input('page', 1),
             'searchPageLimit' => $request->input('searchPageLimit', 5)
@@ -310,7 +309,7 @@ class UserController extends Controller
             || ($searchData['searchDateFirst'] != $defaultStartDay)
             || ($searchData['searchDateSecond'] != $defaultEndDay)
             || ($searchData['gender'] != 'all'))
-            && ($searchData['sortIndex'] == 'no')
+            && ($searchData['sortIndex'] == 'order')
         ) {
             $searchData['sortIndex'] = 'index';
         }
@@ -490,29 +489,31 @@ class UserController extends Controller
         try {
 
             $msg = '순번 변경이 실패했습니다.';
-            $updateCheck = false;
+            $OrderChangeCheck = false;
             $userModel = new Noticeboard();
-            $userOrder = $request->input('userOrder', NuLL);
-            $userOrderSort = Arr::sortRecursive($userOrder);
             $userIndex = $request->input('userIndex', Null);
-            
-            if (isset($userOrderSort) || isset($userIndex)) {
-                foreach ($userOrderSort as $index => $Order) {
-                    $updateUserIndex =  $userIndex[$index];
-                    $result = $userModel->userOrderChange($updateUserIndex,$Order);
-                    if ($result == 1) {
-                        $msg = '순번이 변경됐습니다';
-                        $updateCheck = true;
+            $userOrder = $request->input('userOrder', NuLL);
+
+            if ($userOrder) {
+                $userOrderSort = Arr::sortRecursive($userOrder);
+
+                if ($userOrderSort && $userIndex) {
+                    foreach ($userOrderSort as $index => $Order) {
+                        $updateUserIndex =  $userIndex[$index];
+                        $result = $userModel->userOrderChange($updateUserIndex,$Order);
+                        if ($result == 1) {
+                            $msg = '순번이 변경됐습니다';
+                            $OrderChangeCheck = true;
+                        }
                     }
                 }
             }
             
-            return response()->json(array('msg' => $msg, 'updateCheck' => $updateCheck));
+            return response()->json(array('msg' => $msg, 'OrderChangeCheck' => $OrderChangeCheck));
         } catch (\Exception $e) {
-            $msg = $e->getMessage();
-            //$msg = '순번 변경이 실패했습니다.';
-            $updateCheck = false;
-            return response()->json(array('msg' => $msg, 'updateCheck' => $updateCheck));
+            $msg = '순번 변경이 실패했습니다.';
+            $OrderChangeCheck = false;
+            return response()->json(array('msg' => $msg, 'OrderChangeCheck' => $OrderChangeCheck));
         }
     }
 }

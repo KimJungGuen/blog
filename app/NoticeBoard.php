@@ -82,9 +82,9 @@ class NoticeBoard extends Model
     */
     public function getUserLastOrder()
     {
-        $userNo = $this->max('no');
+        $userOrder = $this->max('order');
 
-        return $userNo;
+        return $userOrder;
     }
 
     /**
@@ -96,7 +96,7 @@ class NoticeBoard extends Model
     {
         $result = $this->withTrashed()
                        ->where('index', $userIndex)
-                       ->update(['no' => $userOrder]);
+                       ->update(['order' => $userOrder]);
                        
 
         return $result;
@@ -160,8 +160,9 @@ class NoticeBoard extends Model
 
     /**
      * @brief   첫 번째 유저 검색 조건 필터
-     * @param   array $search : 검색 조건(filterFirst + filterTextFirst)
-     * @return  Builder $query
+     * @param   Object $query : 쿼리 빌더
+     *          array $search : 검색 조건(filterFirst + filterTextFirst)
+     * @return  Object $query
     */
     public function scopeSearchFilterFirst($query, array $search)
     {
@@ -180,8 +181,9 @@ class NoticeBoard extends Model
 
     /**
      * @brief   두 번째 유저 검색 조건 필터
-     * @param   array $search : 검색 조건(filterSecond + filterTextSecond)
-     * @return  Builder $query
+     * @param   Object $query : 쿼리 빌더
+     *          array $search : 검색 조건(filterSecond + filterTextSecond)
+     * @return  Object $query
     */
     public function scopeSearchfilterSecond($query, array $search)
     {
@@ -200,8 +202,9 @@ class NoticeBoard extends Model
 
     /**
      * @brief   유저 검색 조건 상태
-     * @param   array $search : 검색 조건(유저 상태)
-     * @return  Builder $query
+     * @param   Object $query : 쿼리 빌더
+     *          array $search : 검색 조건(유저 상태)
+     * @return  Object $query
     */
     public function scopeSearchStatus($query, array $search) 
     {
@@ -223,8 +226,9 @@ class NoticeBoard extends Model
 
     /**
      * @brief   유저 검색 조건 날짜
-     * @param   array $search : 검색 조건(날짜)
-     * @return  Builder $query
+     * @param   Object $query : 쿼리 빌더
+     *          array $search : 검색 조건(날짜)
+     * @return  Object $query
     */
     public function scopeSearchDateFormat($query, array $search)
     {
@@ -238,7 +242,7 @@ class NoticeBoard extends Model
     /**
      * @brief   유저 검색
      * @param   array $search : 검색 조건
-     * @return 
+     * @return  Object $users
     */
     public function getUserList(array $search) 
     {
@@ -255,7 +259,6 @@ class NoticeBoard extends Model
                       ->orderBy($search['sortIndex'], $search['orderBy']) //검색 결과 정렬
                       ->orderBy('index', 'asc')
                       ->paginate($search['searchPageLimit']);   
-
         return $users;
     }
 

@@ -215,13 +215,13 @@
             }
             
             //@brief    아이디 중복확인 초기화
-            //@param    $('#idCheck')
+            //@param    input : $('#idCheck')
             function idCheckClear(input) 
             {
                 $(input).closest('td').find('input#idStatus').val(false);
             }
             //@brief    유저 파일 업로드시 미리보기
-            //@param    $('.file').ea()
+            //@param    input : $('.file').ea()
             function filePreView(input) 
             {
                 if (input.files && input.files[0]) {
@@ -233,7 +233,7 @@
                 }
             }
             //@brief    다음 주소 찾기 api
-            //@param    $('.address').eq()
+            //@param    input : $('.address').eq()
             function addressModal(input) 
             {
                 var index = $(input).attr('id');
@@ -252,7 +252,7 @@
             }
             
             //@brief    유저 아이디 중복 확인
-            //@param    $('.idCheck').eq()
+            //@param    $idCheck : $('.idCheck').eq()
             function userIdCheck($idCheck)
             {
                 var userId = $($idCheck).closest('td').find('input#userId').val();
@@ -276,6 +276,7 @@
                 }
                   
                 var userIdSpecialCharacter = userId.search(/[~!@#$%^&*()<>?]/ig);
+
                 //아이디 특수문자 확인 및 아이디 값 전송 
                 if(userIdSpecialCharacter < 0) {
                     $.ajax({
@@ -300,6 +301,7 @@
                     return alert('ID에 특문을 제외하고 입력해주세요.');
                 }
             }
+            
             //@brief    데이터 유효성 판단 및 전송
             function validate()
             {

@@ -37,4 +37,4 @@ Route::put('/userUpdate/{userIndex}', 'UserController@userUpdate')->name('update
 //유저 삭제
 Route::delete('/userSleep', 'UserController@userSleep');
 //유저 순번 저장
-Route::put('/userNoSave', 'UserController@userOrderChange');
+Route::put('/userOrderChange', 'UserController@userOrderChange');

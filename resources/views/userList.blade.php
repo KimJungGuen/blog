@@ -77,7 +77,7 @@
                                     && (is_null($searchData['searchSecondWord']))
                                     && ($searchData['searchDateFirst'] == now()->addMonth(-1)->format('Y-m-d'))
                                     && ($searchData['searchDateSecond'] == now()->format('Y-m-d')))
-                                    <option value="no" @if ($searchData['sortIndex'] == 'no') selected @endif>순번</option>
+                                    <option value="order" @if ($searchData['sortIndex'] == 'order') selected @endif>순번</option>
                                 @endif
                                 <option value="index" @if ($searchData['sortIndex'] == 'index') selected @endif>번호</option>
                                 <option value="accumulated" @if ($searchData['sortIndex'] == 'accumulated') selected @endif>적립금</option>
@@ -132,7 +132,6 @@
                             <th>적립금</th>
                             <th>가입일</th>
                             <th>이동</th>
-                            <th>순서변경</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -144,7 +143,7 @@
                                     <td>
                                         {{ $user->index }}
                                         <input type="hidden" name="userIndex[]" value="{{ $user->index }}" />
-                                        <input type="hidden" name="userOrder[]" value="{{ $user->no }}" />
+                                        <input type="hidden" name="userOrder[]" value="{{ $user->order }}" />
                                     </td>
                                     <td>{{ $userStatus[$index] }}</td>
                                     <td>{{ $user->name }}</td>
@@ -156,12 +155,11 @@
                                     <td>{{ $user->accumulated }}</td>
                                     <td>{{ $user->join_date }}</td>
                                     <td onclick="event.cancelBubble=true">
-                                    @if($user->no != 99999999 && $searchData['sortIndex'] == 'no')
+                                    @if($user->no != 99999999 && $searchData['sortIndex'] == 'order')
                                         <button type="button" class="upBtn" name="upBtn" class="btn" onclick="upUserList(this)" >▲</button>
                                         <button type="button" class="downBtn" name="downBtn" class="btn" onclick="downUserList(this)">▼</button>
                                     @endif
                                     </td>
-                                    <td>순서변경</td>
                                 </tr>
                             @endforeach
                         @else
@@ -241,41 +239,25 @@
         </div>
         
         <script>
-            //window.location.hash="no-back-button";
-            // history.pushState(null, null, location.href);
-            // window.onpopstate = function(event) { history.go(1); };
-            // history.pushState(null, document.title, location.href);
-        
-           
-            // history.pushState(null, null, location.href);
-            // history.back();
-            // history.forward();
-            // window.onpopstate = function () 
-            // { 
-            //     afterUrl = document.referrer.split('/');
-            //     alert(afterUrl);
-            //     if (afterUrl.indexOf('userUpdate') > -1) {
-            //         history.go(1); 
-            //     }
-            // };
-            
+
             //@brief    유저 리스트 위로 이동
             //@param    $('input[name=upBtn]')
-            function upUserList(userListBtn)
+            function upUserList($userListBtn)
             {
-                userList = $(userListBtn).closest('tr');
-                prevUserList = $(userList).prev();
+                var $userList = $($userListBtn).closest('tr');
+                var $prevUserList = $($userList).prev();
                 var userIndex = [];
                 var userOrder = [];
 
-                if($(prevUserList).find('.upBtn').length == 1) {
-                    $(prevUserList).before(userList);
+                //위 리스트에 버튼이 있는지 확인
+                if($($prevUserList).find('.upBtn').length == 1) {
+                    $($prevUserList).before($userList);
                 } else {
                     alert('더 이상 위로 이동 할 수 없습니다.');
                     return false;
                 }
 
-                limit = $("input[name='userIndex[]']").length
+                limit = $("input[name='userIndex[]']").length;
                 if (limit > 0) {
                     for (var index = 0; index < limit; index++) {
                         userIndex[index] = $("input[name='userIndex[]']").eq(index).val();
@@ -283,26 +265,27 @@
                     }
                 }
 
-                listChange(userIndex, userOrder);
+                userOrderChange(userIndex, userOrder);
             }
 
             //@brief    유저 리스트 아래로 이동
             //@param    $('input[name=downBtn]')
-            function downUserList(userListBtn)
+            function downUserList($userListBtn)
             {
-                var userList = $(userListBtn).closest('tr');
-                var nextUserList = $(userList).next();
+                var $userList = $($userListBtn).closest('tr');
+                var $nextUserList = $($userList).next();
                 var userIndex = [];
                 var userOrder = [];
 
-                if($(nextUserList).find('.downBtn').length == 1) {
-                    $(nextUserList).after(userList);
+                //아래 리스트에 이동버튼이 있는지 확인
+                if($($nextUserList).find('.downBtn').length == 1) {
+                    $($nextUserList).after($userList);
                 } else {
                     alert('더 이상 아래로 이동 할 수 없습니다.');
                     return false;
                 }
                 
-                limit = $("input[name='userIndex[]']").length
+                limit = $("input[name='userIndex[]']").length;
                 if (limit > 0) {
                     for (var index = 0; index < limit; index++) {
                         userIndex[index] = $("input[name='userIndex[]']").eq(index).val();
@@ -310,16 +293,18 @@
                     }
                 }
 
-                listChange(userIndex, userOrder);
+                
+
+                userOrderChange(userIndex, userOrder);
             }
 
             //@brief    이동된 유저 리스트 전송 및 저장
             //param     array userIndex : 유저 고유 번호,
             //          array userNo : 유저 순번
-            function listChange(userIndex, userOrder)
+            function userOrderChange(userIndex, userOrder)
             {
                 $.ajax({
-                    url:'/userNoSave',
+                    url:'/userOrderChange',
                     type:'put',
                     data:{
                         'userIndex':userIndex,
@@ -329,7 +314,7 @@
                     datatype:'json',
                     success:function(result){
                         alert(result.msg);
-                        if (result.updateCheck) {
+                        if (result.OrderChangeCheck) {
                             $(location).attr('href', '/users');
                         }
                         return false;
@@ -401,7 +386,7 @@
                                 alert('비밀번호가 일치합니다.');
                                 $('#userUpdateIndex').val(result.userIndex);
                                 var userUpdateIndex = $('#userUpdateIndex').val();
-                                location.replace('/userDetail/' + userUpdateIndex);
+                                $(location).attr('href', '/userDetail/' + userUpdateIndex);
                                 return false;
                             } else {
                                 alert('비밀번호가 틀렸습니다.');
